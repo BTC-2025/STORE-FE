@@ -1,0 +1,87 @@
+#categories {
+  padding-top: 50px;
+  padding-bottom: 50px;
+  background: linear-gradient(45deg, #cfd8dc, #e1bee7);
+}
+
+/* Remove the animation from the card itself */
+#categories .card-wrapper {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: transform 1s ease, opacity 1s ease;
+}
+
+#categories .card-wrapper.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+#categories h2 {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 30px;
+  animation: fadeInDown 2s ease-out;
+}
+
+#categories .card {
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+  background: white;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: transform 1s ease, box-shadow 1s ease;
+  animation: fadeUp 2s ease forwards;
+}
+
+/* Image Styling */
+#categories .card img {
+  height: 250px;
+  object-fit: cover;
+  border-bottom: 2px solid #eee;
+}
+#categories .card:hover {
+  transform: translateY(-10px) scale(1.03);
+  box-shadow: 0px 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Card Title */
+#categories .card-body h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Keyframes */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger Animation for Each Card */
+#categories .card:nth-child(1) {
+  animation-delay: 0.5s;
+}
+#categories .card:nth-child(2) {
+  animation-delay: 1.0s;
+}
+#categories .card:nth-child(3) {
+  animation-delay: 1.5s;
+}
+#categories .card:nth-child(4) {
+  animation-delay: 2.0s;
+}

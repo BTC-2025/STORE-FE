@@ -1,0 +1,347 @@
+/* AddProductPage.css */
+.ap-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.ap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 20px 30px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.ap-back-btn {
+  background: #f8f9fa;
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #6c757d;
+}
+
+.ap-back-btn:hover {
+  background: #e9ecef;
+  transform: translateX(-2px);
+}
+
+.ap-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+}
+
+.ap-header-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.ap-save-btn {
+  background: linear-gradient(135deg, #4fd1c5 0%, #38b2ac 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(79, 209, 197, 0.3);
+}
+
+.ap-save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 209, 197, 0.4);
+}
+
+.ap-save-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.ap-content {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.ap-no-brands {
+  text-align: center;
+  padding: 60px 40px;
+}
+
+.ap-no-brands-icon {
+  font-size: 64px;
+  color: #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.ap-no-brands h2 {
+  font-size: 24px;
+  color: #2d3748;
+  margin-bottom: 15px;
+}
+
+.ap-no-brands p {
+  color: #718096;
+  margin-bottom: 30px;
+  font-size: 16px;
+}
+
+.ap-primary-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.ap-primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.ap-form-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.ap-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.ap-form-section {
+  background: #f8fafc;
+  padding: 25px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.ap-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.ap-input-group {
+  margin-bottom: 20px;
+}
+
+.ap-label {
+  display: block;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.ap-input,
+.ap-select,
+.ap-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.ap-input:focus,
+.ap-select:focus,
+.ap-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.ap-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.ap-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.ap-file-upload {
+  display: flex;
+  gap: 10px;
+}
+
+.ap-upload-btn {
+  background: #edf2f7;
+  border: 2px solid #e2e8f0;
+  padding: 14px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #4a5568;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.ap-upload-btn:hover {
+  background: #e2e8f0;
+}
+
+.ap-checkbox-group {
+  margin-bottom: 20px;
+}
+
+.ap-checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.ap-checkbox {
+  display: none;
+}
+
+.ap-checkbox-custom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #cbd5e0;
+  border-radius: 6px;
+  margin-right: 12px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.ap-checkbox:checked + .ap-checkbox-custom {
+  background: #667eea;
+  border-color: #667eea;
+}
+
+.ap-checkbox:checked + .ap-checkbox-custom::after {
+  content: '✓';
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ap-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding-top: 30px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.ap-cancel-btn {
+  background: #edf2f7;
+  color: #4a5568;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ap-cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+.ap-submit-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.ap-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.ap-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .ap-form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .ap-input-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .ap-container {
+    padding: 10px;
+  }
+  
+  .ap-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .ap-content {
+    padding: 20px;
+  }
+  
+  .ap-form-actions {
+    flex-direction: column;
+  }
+  
+  .ap-file-upload {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .ap-form-section {
+    padding: 20px;
+  }
+  
+  .ap-title {
+    font-size: 24px;
+  }
+  
+  .ap-save-btn,
+  .ap-primary-btn,
+  .ap-cancel-btn,
+  .ap-submit-btn {
+    padding: 12px 20px;
+  }
+}

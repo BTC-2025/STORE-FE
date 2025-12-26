@@ -1,0 +1,67 @@
+#deal-day {
+  background: linear-gradient(135deg, #ffecd2, #fcb69f);
+  padding: 50px 0;
+}
+
+/* Wrapper for scroll animation */
+.deal-wrapper {
+  opacity: 0;
+  transform: translateY(30px) scale(0.95);
+  transition: transform 0.8s ease, opacity 0.8s ease;
+}
+
+.deal-wrapper.animate {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Card Styling */
+.deal-card {
+  border-radius: 20px;
+  overflow: hidden;
+  transform: scale(1);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  background: white;
+}
+
+.deal-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+.deal-card img {
+  height: 250px;
+  object-fit: cover;
+}
+
+.deal-price {
+  font-size: 1.5rem;
+  color: #ff3b3b;
+  font-weight: bold;
+}
+
+.deal-timer {
+  color: #555;
+  font-weight: 500;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.deal-btn {
+  background: linear-gradient(90deg, #ff6a00, #ee0979);
+  border: none;
+  padding: 10px 20px;
+  color: white;
+  font-weight: bold;
+  border-radius: 30px;
+  transition: background 0.3s ease;
+}
+
+.deal-btn:hover {
+  background: linear-gradient(90deg, #ee0979, #ff6a00);
+}

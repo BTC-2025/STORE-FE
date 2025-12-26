@@ -1,0 +1,150 @@
+/* ------------------ Navbar Base ------------------ */
+.navbar {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.navbar.scrolled {
+  background: linear-gradient(90deg, #ff416c, #ff4b2b);
+  color: #fff;
+  border-bottom: none;
+}
+
+/* ------------------ Brand ------------------ */
+.navbar .navbar-brand {
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+  font-weight: bold;
+  color: #ff416c;
+  transition: color 0.3s ease;
+}
+
+.navbar.scrolled .navbar-brand {
+  color: #fff;
+}
+
+/* ------------------ Search Bar ------------------ */
+.search-bar {
+  display: flex;
+  min-width: 0; /* allow shrink */
+  margin: 0 1rem;
+}
+
+.search-bar input {
+  width: 500px;
+  min-width: 250px;
+  border-radius: 20px;
+  padding-left: 15px;
+  border: 1px solid #ccc;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: #ff416c;
+  box-shadow: 0 0 8px rgba(255, 65, 108, 0.4);
+}
+
+.search-bar button {
+  border-radius: 20px;
+  background-color: #ff416c;
+  border: none;
+  color: white;
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
+}
+
+.search-bar button:hover {
+  background-color: #ff4b2b;
+}
+
+/* Responsive: move search bar below brand */
+@media (max-width: 768px) {
+  .search-bar {
+    margin: 10px 0;
+    width: 100%;
+    order: 1;
+  }
+}
+
+/* ------------------ Nav Links ------------------ */
+.navbar .nav-link {
+  position: relative;
+  margin: 0 0.5rem;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.navbar.scrolled .nav-link {
+  color: white;
+}
+
+/* Hover underline effect */
+.navbar .nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -3px;
+  left: 0;
+  background-color: #ff416c;
+  transition: width 0.3s;
+}
+
+.navbar.scrolled .nav-link::after {
+  background-color: #fff;
+}
+
+.navbar .nav-link:hover::after {
+  width: 100%;
+}
+
+.navbar .nav-link:hover {
+  color: #ff416c;
+}
+
+.navbar.scrolled .nav-link:hover {
+  color: #fff;
+}
+
+/* ------------------ Profile Dropdown ------------------ */
+.profile-dropdown:hover .dropdown-menu {
+  display: block;
+  margin-top: 0;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.dropdown-menu {
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100000;
+}
+
+.dropdown-item {
+  padding: 10px 15px;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #ffe6ec;
+}
+
+.dropdown-toggle::after {
+  display: none !important;
+}
+
+/* ------------------ Toggler ------------------ */
+.navbar-toggler {
+  border: none;
+  outline: none;
+}
+
+/* ------------------ Animation ------------------ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

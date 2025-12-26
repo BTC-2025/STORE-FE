@@ -1,0 +1,113 @@
+/* Section Styling */
+#trending {
+  background: linear-gradient(45deg, #e6eaeb, #f1ecf4);
+  padding: 60px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative background shapes */
+#trending::before,
+#trending::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0, 123, 255, 0.08);
+  z-index: 0;
+}
+
+#trending::before {
+  width: 300px;
+  height: 300px;
+  top: -100px;
+  left: -100px;
+}
+
+#trending::after {
+  width: 200px;
+  height: 200px;
+  bottom: -50px;
+  right: -50px;
+}
+
+/* Section Header */
+#trending h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #007bff, #00c6ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: fadeInDown 1s ease-out;
+}
+
+#trending p {
+  font-size: 1.1rem;
+  color: #666;
+  animation: fadeInUp 1.2s ease-out;
+}
+
+/* Card Wrapper (scroll animation) */
+#trending .card-wrapper {
+  opacity: 0;
+  transform: scale(0.9) translateY(30px);
+  transition: transform 0.8s ease, opacity 0.8s ease;
+}
+
+#trending .card-wrapper.animate {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Card Styles */
+#trending .card {
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  position: relative;
+  z-index: 1;
+}
+
+/* Image Styling */
+#trending .card img {
+  height: 180px;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+/* Hover Effects */
+#trending .card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+#trending .card:hover img {
+  transform: scale(1.1);
+}
+
+/* Card Body */
+#trending .card-body h6 {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+}
+
+#trending .card-body p {
+  font-weight: 500;
+  color: #007bff;
+  font-size: 1.1rem;
+}
+
+/* Animation Keyframes */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}

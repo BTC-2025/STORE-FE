@@ -1,0 +1,122 @@
+.new-arrivals-container {
+  padding: 40px 20px;
+  background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+  text-align: center;
+}
+
+.new-arrivals-container h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 30px;
+  color: #2d3436;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 15px;
+}
+
+.new-arrivals-container h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #4facfe, #00f2fe);
+  border-radius: 2px;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 columns */
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.product-item {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+}
+
+.arrival-link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.arrival-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.arrival-link:hover .arrival-image {
+  transform: scale(1.05);
+}
+
+.arrival-info {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1;
+}
+
+.arrival-name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #2d3436;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.arrival-discount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #00b894;
+  margin: 0;
+  background: rgba(0, 184, 148, 0.1);
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  width: fit-content;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: 1fr; /* single column on mobile */
+  }
+  .arrival-image {
+    height: 200px;
+  }
+}
+
+@media (max-width: 576px) {
+  .new-arrivals-container {
+    padding: 30px 15px;
+  }
+  .new-arrivals-container h2 {
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+  }
+}

@@ -1,0 +1,45 @@
+.lifestyle-section {
+  background: linear-gradient(135deg, #f6f9fc 0%, #e9eff5 100%);
+  padding: 3rem 0;
+}
+
+.lifestyle-card {
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  cursor: pointer;
+}
+
+.lifestyle-card img {
+  transition: transform 0.4s ease;
+}
+
+.lifestyle-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.lifestyle-card:hover img {
+  transform: scale(1.1);
+}
+
+.lifestyle-card .card-body {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1rem;
+  transition: background 0.3s ease;
+}
+
+.lifestyle-card:hover .card-body {
+  background: rgba(255, 255, 255, 1);
+}
+
+.lifestyle-card h6 {
+  font-weight: bold;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.lifestyle-card:hover h6 {
+  color: #e67e22;
+}

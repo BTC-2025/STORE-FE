@@ -1,0 +1,396 @@
+/* components/ChatBot.css */
+.shopbot-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+/* Chat Toggle Button */
+.shopbot-toggle-btn {
+  position: relative;
+  width: 60px !important;
+  height: 60px !important;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  border: none;
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  color: white;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  animation: shopbot-bounce 2.5s ease-in-out infinite;
+}
+
+.shopbot-toggle-btn:hover {
+  transform: scale(1.15) rotate(12deg);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+}
+
+.shopbot-toggle-btn.shopbot-active {
+  background: linear-gradient(135deg, #4834d4 0%, #686de0 100%);
+  transform: scale(1.1) rotate(90deg);
+  animation: none;
+}
+
+.shopbot-pulse {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 14px;
+  height: 14px;
+  background: #2ed573;
+  border-radius: 50%;
+  animation: shopbot-ping 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes shopbot-bounce {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(3deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(-2deg);
+  }
+  75% {
+    transform: translateY(-6px) rotate(1deg);
+  }
+}
+
+@keyframes shopbot-ping {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.7;
+  }
+}
+
+/* Chat Window */
+.shopbot-window {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  width: 380px;
+  height: 520px;
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+  animation: shopbot-slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+@keyframes shopbot-slideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.8) rotateX(-10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+  }
+}
+
+.shopbot-header {
+  background: linear-gradient(135deg, #4834d4 0%, #686de0 100%);
+  color: white;
+  border-radius: 20px 20px 0 0 !important;
+  border: none;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(10px);
+}
+
+.shopbot-avatar {
+  width: 45px;
+  height: 45px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  animation: shopbot-avatarGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes shopbot-avatarGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+  }
+}
+
+.shopbot-close {
+  color: white !important;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.shopbot-close:hover {
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+.shopbot-body {
+  padding: 0;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  height: 360px;
+  overflow-y: auto;
+  border-radius: 0 0 20px 20px;
+}
+
+.shopbot-messages {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Messages */
+.shopbot-msg {
+  display: flex;
+  animation: shopbot-msgAppear 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes shopbot-msgAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.shopbot-msg-user {
+  justify-content: flex-end;
+}
+
+.shopbot-msg-bot {
+  justify-content: flex-start;
+}
+
+.shopbot-msg-content {
+  max-width: 78%;
+  padding: 14px 18px;
+  border-radius: 22px;
+  position: relative;
+  backdrop-filter: blur(10px);
+}
+
+.shopbot-msg-user .shopbot-msg-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom-right-radius: 8px;
+  animation: shopbot-msgSlideRight 0.4s ease-out;
+}
+
+.shopbot-msg-bot .shopbot-msg-content {
+  background: rgba(255, 255, 255, 0.95);
+  color: #2d3748;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom-left-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  animation: shopbot-msgSlideLeft 0.4s ease-out;
+}
+
+@keyframes shopbot-msgSlideRight {
+  0% {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shopbot-msgSlideLeft {
+  0% {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.shopbot-msg-text {
+  margin-bottom: 6px;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.shopbot-msg-time {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  text-align: right;
+}
+
+.shopbot-msg-bot .shopbot-msg-time {
+  text-align: left;
+}
+
+/* Typing Indicator */
+.shopbot-typing {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 0;
+}
+
+.shopbot-typing span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  animation: shopbot-typeWave 1.8s infinite ease-in-out;
+}
+
+.shopbot-typing span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.shopbot-typing span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes shopbot-typeWave {
+  0%, 80%, 100% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: translateY(-10px) scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Chat Footer */
+.shopbot-footer {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 0 0 20px 20px !important;
+  border: none;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.shopbot-input {
+  border-radius: 25px;
+  border: 2px solid #e9ecef;
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.shopbot-input:focus {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  border-color: #667eea;
+  transform: translateY(-1px);
+}
+
+.shopbot-send {
+  border-radius: 50%;
+  /* width: 45px !important;
+  height: 45px; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  transition: all 0.3s ease;
+}
+
+.shopbot-send:hover {
+  transform: scale(1.1) rotate(12deg);
+}
+
+.shopbot-quick {
+  font-size: 0.85rem;
+}
+
+.shopbot-quick-btn {
+  border-radius: 20px;
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  transition: all 0.3s ease;
+  border: 1px solid #667eea;
+}
+
+.shopbot-quick-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+  .shopbot-container {
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  .shopbot-toggle-btn {
+    width: 55px;
+    height: 55px;
+    font-size: 1.3rem;
+  }
+  
+  .shopbot-window {
+    width: calc(100vw - 30px);
+    right: 15px;
+    height: 450px;
+    max-height: 70vh;
+  }
+  
+  .shopbot-msg-content {
+    max-width: 85%;
+  }
+}
+
+/* Custom Scrollbar */
+.shopbot-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.shopbot-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.shopbot-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+.shopbot-body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a42a8 100%);
+}
+
+/* Exit Animation */
+.shopbot-window.shopbot-closing {
+  animation: shopbot-slideOut 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+}
+
+@keyframes shopbot-slideOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.8);
+  }
+}

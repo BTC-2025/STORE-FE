@@ -1,0 +1,126 @@
+.return-orders-page {
+  padding: 20px;
+}
+
+.return-orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.return-orders-list {
+  margin-top: 20px;
+  display: grid;
+  gap: 15px;
+}
+
+.return-order-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  background: #fff;
+}
+
+.return-item-image img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.return-item-info h3 {
+  margin: 0;
+}
+
+.status-pending {
+  color: #e67e22;
+  font-weight: bold;
+}
+
+.status-success {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.no-returns {
+  text-align: center;
+  color: #777;
+}
+
+.btn-complaint {
+  margin-top: 8px;
+  background: #e74c3c;
+  color: #fff;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-complaint:hover {
+  background: #c0392b;
+}
+
+/* Modal Styling */
+.complaint-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.complaint-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+}
+.complaint-content h3 {
+  margin-bottom: 15px;
+}
+.complaint-content label {
+  font-weight: bold;
+  display: block;
+  margin-top: 10px;
+}
+.complaint-content select,
+.complaint-content textarea {
+  width: 100%;
+  margin-top: 5px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+.modal-actions button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.modal-actions button:first-child {
+  background: #bbb;
+  color: #fff;
+}
+.modal-actions button:last-child {
+  background: #27ae60;
+  color: #fff;
+}
+.modal-actions button:last-child:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
