@@ -16,7 +16,6 @@ const ProductDetail = () => {
   const [cartItems, setCartItems] = useState([]);
   const [wishlistItems, setWishlistItems] = useState([]);
   const [reviews, setReviews] = useState([]);
-  const [showAllReviews, setShowAllReviews] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
 
   // Fetch all data

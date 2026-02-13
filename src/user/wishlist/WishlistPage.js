@@ -19,6 +19,32 @@ const WishlistPage = () => {
     setUser(userData);
   }, []);
 
+  const fetchWishlistItems = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/api/wishlist/userid/${user.id}`
+      );
+      setWishlistItems(response.data);
+    } catch (error) {
+      console.error("Error fetching wishlist items:", error);
+      showMessage("Failed to load wishlist items", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const fetchRecommendedProducts = React.useCallback(async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/product`);
+      // Get random 4 products for recommendations
+      const shuffled = response.data.sort(() => 0.5 - Math.random());
+      setRecommendedProducts(shuffled.slice(0, 4));
+    } catch (error) {
+      console.error("Error fetching recommended products:", error);
+    }
+  }, []);
+
   // Fetch wishlist items and recommended products
   useEffect(() => {
     if (user) {
@@ -28,7 +54,7 @@ const WishlistPage = () => {
       // If no user, stop loading immediately
       setLoading(false);
     }
-  }, [user]);
+  }, [user, fetchWishlistItems, fetchRecommendedProducts]);
 
   useEffect(() => {
     if (user) {
@@ -48,31 +74,7 @@ const WishlistPage = () => {
     return carted.some(item => item.productId === productId);
   };
 
-  const fetchWishlistItems = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/api/wishlist/userid/${user.id}`
-      );
-      setWishlistItems(response.data);
-    } catch (error) {
-      console.error("Error fetching wishlist items:", error);
-      showMessage("Failed to load wishlist items", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchRecommendedProducts = async () => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/product`);
-      // Get random 4 products for recommendations
-      const shuffled = response.data.sort(() => 0.5 - Math.random());
-      setRecommendedProducts(shuffled.slice(0, 4));
-    } catch (error) {
-      console.error("Error fetching recommended products:", error);
-    }
-  };
 
   // Remove item from wishlist
   const removeFromWishlist = async (productId) => {
@@ -80,7 +82,7 @@ const WishlistPage = () => {
       navigate('/login', { state: { from: 'wishlist' } });
       return;
     }
-    
+
     try {
       await axios.delete(
         `${process.env.REACT_APP_BASE_URL}/api/wishlist/userid/${user.id}/productid/${productId}`
@@ -100,7 +102,7 @@ const WishlistPage = () => {
       navigate('/login', { state: { from: 'wishlist' } });
       return;
     }
-    
+
     try {
       await axios.delete(
         `${process.env.REACT_APP_BASE_URL}/api/wishlist/clear/userid/${user.id}`
@@ -120,7 +122,7 @@ const WishlistPage = () => {
       navigate('/login', { state: { from: 'wishlist' } });
       return;
     }
-    
+
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/api/cart/add`,
@@ -177,9 +179,9 @@ const WishlistPage = () => {
               <i className={`fas fa-${message.type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2`}></i>
               {message.text}
             </div>
-            <button 
-              type="button" 
-              className="wishlist-toast-close" 
+            <button
+              type="button"
+              className="wishlist-toast-close"
               onClick={() => setMessage({ show: false, text: "", type: "" })}
             >
               &times;
@@ -201,10 +203,10 @@ const WishlistPage = () => {
               <p className="wishlist-subtitle">Your favorite items</p>
             )}
           </div>
-          
+
           {user && wishlistItems.length > 0 && (
             <div className="wishlist-actions">
-              <button 
+              <button
                 className="wishlist-clear-btn"
                 onClick={emptyWishlist}
               >
@@ -214,7 +216,7 @@ const WishlistPage = () => {
             </div>
           )}
         </div>
-        
+
         <nav className="wishlist-breadcrumb">
           <ol>
             <li><a href="/">Home</a></li>
@@ -235,14 +237,14 @@ const WishlistPage = () => {
               Sign in to save your favorite items and access them from any device.
             </p>
             <div className="wishlist-guest-buttons">
-              <button 
+              <button
                 className="btn btn-primary"
                 onClick={() => navigate('/login', { state: { from: 'wishlist' } })}
               >
                 <i className="fas fa-sign-in-alt me-2"></i>
                 Sign In
               </button>
-              <button 
+              <button
                 className="btn btn-outline-primary"
                 onClick={() => navigate('/register', { state: { from: 'wishlist' } })}
               >
@@ -278,7 +280,7 @@ const WishlistPage = () => {
                     alt={item.product.name}
                     className="wishlist-item-img"
                   />
-                  <button 
+                  <button
                     className="wishlist-remove-btn"
                     onClick={() => removeFromWishlist(item.productId)}
                     title="Remove from wishlist"
@@ -290,19 +292,19 @@ const WishlistPage = () => {
                 <div className="wishlist-item-details">
                   <h3 className="wishlist-item-title">{item.product.name}</h3>
                   <p className="wishlist-item-category">{item.product.category}</p>
-                  
+
                   <div className="wishlist-item-price">
                     <span className="wishlist-price-current">₹{item.product.price}</span>
                     {item.product.discount > 0 && (
                       <span className="wishlist-price-original">
-                        ₹{(item.product.price / (1 - item.product.discount/100)).toFixed(2)}
+                        ₹{(item.product.price / (1 - item.product.discount / 100)).toFixed(2)}
                       </span>
                     )}
                   </div>
 
                   <div className="wishlist-item-actions">
                     {isInCart(item.productId) ? (
-                      <button 
+                      <button
                         className="wishlist-action-btn wishlist-action-cart"
                         onClick={() => navigate('/cart')}
                       >
@@ -310,7 +312,7 @@ const WishlistPage = () => {
                         View in Cart
                       </button>
                     ) : (
-                      <button 
+                      <button
                         className="wishlist-action-btn wishlist-action-add"
                         onClick={() => addToCart(item.productId)}
                       >
@@ -318,8 +320,8 @@ const WishlistPage = () => {
                         Add to Cart
                       </button>
                     )}
-                    
-                    <button 
+
+                    <button
                       className="wishlist-action-btn wishlist-action-view"
                       onClick={() => navigate(`/product/${item.productId}`)}
                     >
@@ -331,7 +333,7 @@ const WishlistPage = () => {
               </div>
             ))}
           </div>
-          
+
           {/* Recommendations */}
           <div className="wishlist-recommendations">
             <div className="recommendations-header">
@@ -340,7 +342,7 @@ const WishlistPage = () => {
                 View All <i className="fas fa-chevron-right ms-1"></i>
               </a>
             </div>
-            
+
             <div className="recommendations-grid">
               {recommendedProducts.map((product) => (
                 <div key={product.id} className="recommendation-card">
@@ -361,11 +363,11 @@ const WishlistPage = () => {
                       <span className="recommendation-price-current">₹{product.price}</span>
                       {product.discount > 0 && (
                         <span className="recommendation-price-original">
-                          ₹{(product.price / (1 - product.discount/100)).toFixed(2)}
+                          ₹{(product.price / (1 - product.discount / 100)).toFixed(2)}
                         </span>
                       )}
                     </div>
-                    <button 
+                    <button
                       className="recommendation-add-btn"
                       onClick={() => navigate(`/product/${product.id}`)}
                     >

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaArrowLeft, FaExclamationTriangle, FaPlus, FaFilter, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaExclamationTriangle, FaFilter, FaTimes } from 'react-icons/fa';
 import './ComplaintsManagement.css';
 
 const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
@@ -38,11 +38,11 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
             'Authorization': `Bearer ${sellerToken}`
           }
         });
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch complaints');
         }
-        
+
         const data = await response.json();
         setComplaintsOnUs(data.complaintOnUs || []);
         setComplaintsByUs(data.complaintByUs || []);
@@ -63,8 +63,8 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
   };
 
   // Filter complaints based on type
-  const filteredComplaints = filterType === 'All' 
-    ? getCurrentComplaints() 
+  const filteredComplaints = filterType === 'All'
+    ? getCurrentComplaints()
     : getCurrentComplaints().filter(complaint => complaint.complaintType === filterType);
 
   // Get unique complaint types for filter
@@ -76,7 +76,7 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
   // Update complaint status
   const updateComplaintStatus = async () => {
     if (!selectedComplaint) return;
-    
+
     setUpdatingStatus(true);
     try {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/complaint/update/status/${selectedComplaint.id}`, {
@@ -91,48 +91,48 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
           resolvedBy: resolvedBy ? parseInt(resolvedBy) : null
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update complaint status');
       }
-      
+
       // Update the complaint in the local state
       if (activeTab === 'onUs') {
-        const updatedComplaints = complaintsOnUs.map(complaint => 
-          complaint.id === selectedComplaint.id 
-            ? { 
-                ...complaint, 
-                status: status, 
-                priority: priority,
-                resolvedBy: resolvedBy ? parseInt(resolvedBy) : null
-              } 
+        const updatedComplaints = complaintsOnUs.map(complaint =>
+          complaint.id === selectedComplaint.id
+            ? {
+              ...complaint,
+              status: status,
+              priority: priority,
+              resolvedBy: resolvedBy ? parseInt(resolvedBy) : null
+            }
             : complaint
         );
         setComplaintsOnUs(updatedComplaints);
       } else {
-        const updatedComplaints = complaintsByUs.map(complaint => 
-          complaint.id === selectedComplaint.id 
-            ? { 
-                ...complaint, 
-                status: status, 
-                priority: priority,
-                resolvedBy: resolvedBy ? parseInt(resolvedBy) : null
-              } 
+        const updatedComplaints = complaintsByUs.map(complaint =>
+          complaint.id === selectedComplaint.id
+            ? {
+              ...complaint,
+              status: status,
+              priority: priority,
+              resolvedBy: resolvedBy ? parseInt(resolvedBy) : null
+            }
             : complaint
         );
         setComplaintsByUs(updatedComplaints);
       }
-      
-      setSelectedComplaint({ 
-        ...selectedComplaint, 
-        status: status, 
+
+      setSelectedComplaint({
+        ...selectedComplaint,
+        status: status,
         priority: priority,
         resolvedBy: resolvedBy ? parseInt(resolvedBy) : null
       });
       setUpdatingStatus(false);
-      
+
       alert('Complaint status updated successfully!');
-      
+
     } catch (error) {
       console.error('Error updating complaint status:', error);
       setError('Failed to update complaint status');
@@ -160,13 +160,13 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
           priority: newComplaint.priority
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create complaint');
       }
-      
+
       const createdComplaint = await response.json();
-      
+
       // Add the new complaint to the list
       setComplaintsByUs([...complaintsByUs, createdComplaint]);
       setShowCreateModal(false);
@@ -179,9 +179,9 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
         description: '',
         priority: 'Medium'
       });
-      
+
       alert('Complaint created successfully!');
-      
+
     } catch (error) {
       console.error('Error creating complaint:', error);
       setError('Failed to create complaint');
@@ -237,8 +237,8 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
         <div className="header-actions">
           <div className="filter-section">
             <FaFilter className="filter-icon" />
-            <select 
-              value={filterType} 
+            <select
+              value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
               className="type-filter"
             >
@@ -260,13 +260,13 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
 
       {/* Tab Navigation */}
       <div className="complaints-tabs">
-        <button 
+        <button
           className={`tab-button ${activeTab === 'onUs' ? 'active' : ''}`}
           onClick={() => setActiveTab('onUs')}
         >
           Complaints On Us ({complaintsOnUs.length})
         </button>
-        <button 
+        <button
           className={`tab-button ${activeTab === 'byUs' ? 'active' : ''}`}
           onClick={() => setActiveTab('byUs')}
         >
@@ -299,8 +299,8 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
                     <td>#{complaint.id}</td>
                     <td>{complaint.complaintType}</td>
                     <td className="description-cell">
-                      {complaint.description.length > 100 
-                        ? `${complaint.description.substring(0, 100)}...` 
+                      {complaint.description.length > 100
+                        ? `${complaint.description.substring(0, 100)}...`
                         : complaint.description
                       }
                     </td>
@@ -316,7 +316,7 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
                     </td>
                     <td>{formatDate(complaint.createdAt)}</td>
                     <td>
-                      <button 
+                      <button
                         className="btn-view"
                         onClick={() => openComplaintDetails(complaint)}
                       >
@@ -337,7 +337,7 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
           <div className="modal-content">
             <div className="modal-header">
               <h3>Complaint Details #{selectedComplaint.id}</h3>
-              <button 
+              <button
                 className="modal-close"
                 onClick={() => setShowModal(false)}
               >
@@ -357,10 +357,10 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
                 <div className="detail-row">
                   <span className="detail-label">Raised By:</span>
                   <span className="detail-value">
-                    {selectedComplaint.raisedByUserId 
-                      ? `User #${selectedComplaint.raisedByUserId}` 
-                      : selectedComplaint.raisedBySellerId 
-                        ? `Seller #${selectedComplaint.raisedBySellerId}` 
+                    {selectedComplaint.raisedByUserId
+                      ? `User #${selectedComplaint.raisedByUserId}`
+                      : selectedComplaint.raisedBySellerId
+                        ? `Seller #${selectedComplaint.raisedBySellerId}`
                         : 'N/A'
                     }
                   </span>
@@ -368,10 +368,10 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
                 <div className="detail-row">
                   <span className="detail-label">Against:</span>
                   <span className="detail-value">
-                    {selectedComplaint.againstUserId 
-                      ? `User #${selectedComplaint.againstUserId}` 
-                      : selectedComplaint.againstSellerId 
-                        ? `Seller #${selectedComplaint.againstSellerId}` 
+                    {selectedComplaint.againstUserId
+                      ? `User #${selectedComplaint.againstUserId}`
+                      : selectedComplaint.againstSellerId
+                        ? `Seller #${selectedComplaint.againstSellerId}`
                         : 'N/A'
                     }
                   </span>
@@ -392,14 +392,14 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
                   <span className="detail-label">Last Updated:</span>
                   <span className="detail-value">{formatDate(selectedComplaint.updatedAt)}</span>
                 </div>
-                
+
                 {activeTab === 'onUs' && (
                   <div className="status-update-section">
                     <h4>Update Complaint Status</h4>
                     <div className="form-group">
                       <label>Status:</label>
-                      <select 
-                        value={status} 
+                      <select
+                        value={status}
                         onChange={(e) => setStatus(e.target.value)}
                       >
                         <option value="Pending">Pending</option>
@@ -410,8 +410,8 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
                     </div>
                     <div className="form-group">
                       <label>Priority:</label>
-                      <select 
-                        value={priority} 
+                      <select
+                        value={priority}
                         onChange={(e) => setPriority(e.target.value)}
                       >
                         <option value="Low">Low</option>
@@ -422,9 +422,9 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
                     </div>
                     <div className="form-group">
                       <label>Resolved By (Seller ID):</label>
-                      <input 
-                        type="number" 
-                        value={resolvedBy} 
+                      <input
+                        type="number"
+                        value={resolvedBy}
                         onChange={(e) => setResolvedBy(e.target.value)}
                         placeholder="Enter your seller ID"
                       />
@@ -434,14 +434,14 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
               </div>
             </div>
             <div className="modal-footer">
-              <button 
+              <button
                 className="btn-cancel"
                 onClick={() => setShowModal(false)}
               >
                 Cancel
               </button>
               {activeTab === 'onUs' && (
-                <button 
+                <button
                   className="btn-update"
                   onClick={updateComplaintStatus}
                   disabled={updatingStatus}
@@ -460,7 +460,7 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
           <div className="modal-content">
             <div className="modal-header">
               <h3>Create New Complaint</h3>
-              <button 
+              <button
                 className="modal-close"
                 onClick={() => setShowCreateModal(false)}
               >
@@ -471,9 +471,9 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
               <div className="create-complaint-form">
                 <div className="form-group">
                   <label>Complaint Type:</label>
-                  <select 
-                    value={newComplaint.complaintType} 
-                    onChange={(e) => setNewComplaint({...newComplaint, complaintType: e.target.value})}
+                  <select
+                    value={newComplaint.complaintType}
+                    onChange={(e) => setNewComplaint({ ...newComplaint, complaintType: e.target.value })}
                     required
                   >
                     <option value="">Select Type</option>
@@ -487,9 +487,9 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
                 </div>
                 <div className="form-group">
                   <label>Description:</label>
-                  <textarea 
-                    value={newComplaint.description} 
-                    onChange={(e) => setNewComplaint({...newComplaint, description: e.target.value})}
+                  <textarea
+                    value={newComplaint.description}
+                    onChange={(e) => setNewComplaint({ ...newComplaint, description: e.target.value })}
                     placeholder="Describe your complaint in detail"
                     rows="4"
                     required
@@ -497,9 +497,9 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
                 </div>
                 <div className="form-group">
                   <label>Priority:</label>
-                  <select 
-                    value={newComplaint.priority} 
-                    onChange={(e) => setNewComplaint({...newComplaint, priority: e.target.value})}
+                  <select
+                    value={newComplaint.priority}
+                    onChange={(e) => setNewComplaint({ ...newComplaint, priority: e.target.value })}
                   >
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
@@ -509,50 +509,50 @@ const ComplaintsManagement = ({ sellerToken, sellerId, onBackToDashboard }) => {
                 </div>
                 <div className="form-group">
                   <label>Against User ID (optional):</label>
-                  <input 
-                    type="number" 
-                    value={newComplaint.againstUserId} 
-                    onChange={(e) => setNewComplaint({...newComplaint, againstUserId: e.target.value})}
+                  <input
+                    type="number"
+                    value={newComplaint.againstUserId}
+                    onChange={(e) => setNewComplaint({ ...newComplaint, againstUserId: e.target.value })}
                     placeholder="User ID if complaining against a user"
                   />
                 </div>
                 <div className="form-group">
                   <label>Against Seller ID (optional):</label>
-                  <input 
-                    type="number" 
-                    value={newComplaint.againstSellerId} 
-                    onChange={(e) => setNewComplaint({...newComplaint, againstSellerId: e.target.value})}
+                  <input
+                    type="number"
+                    value={newComplaint.againstSellerId}
+                    onChange={(e) => setNewComplaint({ ...newComplaint, againstSellerId: e.target.value })}
                     placeholder="Seller ID if complaining against a seller"
                   />
                 </div>
                 <div className="form-group">
                   <label>Product ID (optional):</label>
-                  <input 
-                    type="number" 
-                    value={newComplaint.productId} 
-                    onChange={(e) => setNewComplaint({...newComplaint, productId: e.target.value})}
+                  <input
+                    type="number"
+                    value={newComplaint.productId}
+                    onChange={(e) => setNewComplaint({ ...newComplaint, productId: e.target.value })}
                     placeholder="Product ID related to complaint"
                   />
                 </div>
                 <div className="form-group">
                   <label>Order ID (optional):</label>
-                  <input 
-                    type="number" 
-                    value={newComplaint.orderId} 
-                    onChange={(e) => setNewComplaint({...newComplaint, orderId: e.target.value})}
+                  <input
+                    type="number"
+                    value={newComplaint.orderId}
+                    onChange={(e) => setNewComplaint({ ...newComplaint, orderId: e.target.value })}
                     placeholder="Order ID related to complaint"
                   />
                 </div>
               </div>
             </div>
             <div className="modal-footer">
-              <button 
+              <button
                 className="btn-cancel"
                 onClick={() => setShowCreateModal(false)}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 className="btn-create"
                 onClick={createComplaint}
                 disabled={creatingComplaint || !newComplaint.complaintType || !newComplaint.description}

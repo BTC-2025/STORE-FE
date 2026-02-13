@@ -15,7 +15,7 @@ const ProductListing = () => {
   const [loading, setLoading] = useState(true);
 
   // Filters Data
-  const [categories, setCategories] = useState([
+  const [categories] = useState([
     {
       name: 'Electronics',
       subCategories: ['Mobiles & Accessories', 'Laptops & Accessories', 'Computers & Components', 'Audio & Wearables', 'Cameras & Photography', 'TVs & Home Entertainment', 'Gaming', 'Home Appliances', 'Networking & Smart Devices', 'Electronic Accessories']
@@ -77,24 +77,6 @@ const ProductListing = () => {
 
   // -- Effects --
 
-  useEffect(() => {
-    if (location.state?.products) {
-      setAllProducts(location.state.products); // Cache passed products too
-      setProducts(location.state.products);
-      setFilteredProducts(location.state.products);
-      setLoading(false);
-    } else {
-      fetchProducts();
-    }
-  }, [location.state]);
-
-  useEffect(() => {
-    if (user) {
-      fetchCart();
-      fetchWishlist();
-    }
-  }, []);
-
   // Filtering Logic
   useEffect(() => {
     let result = [...products];
@@ -130,11 +112,11 @@ const ProductListing = () => {
     if (sortOption === 'popular') result.sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
 
     setFilteredProducts(result);
-  }, [products, selectedCategory, selectedSubCategory, sortOption, priceRange, selectedBrands, selectedRatings]);
+  }, [products, selectedCategory, selectedSubCategory, sortOption, priceRange, selectedBrands, selectedRatings, loading]);
 
 
   // -- API Calls --
-  const fetchProducts = async () => {
+  const fetchProducts = React.useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/product`);
@@ -147,9 +129,9 @@ const ProductListing = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchProductsBySubCategory = async (subcategory) => {
+  const fetchProductsBySubCategory = React.useCallback(async (subcategory) => {
     if (allProducts.length > 0) {
       setProducts(allProducts); // Ensure we filter from full list
       setSelectedSubCategory(subcategory);
@@ -168,21 +150,41 @@ const ProductListing = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [allProducts]);
 
-  const fetchCart = async () => {
+  const fetchCart = React.useCallback(async () => {
     try {
       const res = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/cart/userid/${user.id}`);
       setCarted(res.data);
     } catch (err) { console.error(err); }
-  };
+  }, [user]);
 
-  const fetchWishlist = async () => {
+  const fetchWishlist = React.useCallback(async () => {
     try {
       const res = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/wishlist/userid/${user.id}`);
       setWishlist(res.data.map(item => item.productId));
     } catch (err) { console.error(err); }
-  };
+  }, [user]);
+
+  // -- Effects --
+
+  useEffect(() => {
+    if (location.state?.products) {
+      setAllProducts(location.state.products); // Cache passed products too
+      setProducts(location.state.products);
+      setFilteredProducts(location.state.products);
+      setLoading(false);
+    } else {
+      fetchProducts();
+    }
+  }, [location.state, fetchProducts]);
+
+  useEffect(() => {
+    if (user) {
+      fetchCart();
+      fetchWishlist();
+    }
+  }, [user, fetchCart, fetchWishlist]);
 
   // -- Actions --
   const handleCategoryClick = (catName) => {
@@ -214,16 +216,7 @@ const ProductListing = () => {
     setSelectedRatings(prev => prev.includes(rating) ? prev.filter(r => r !== rating) : [...prev, rating]);
   };
 
-  const addToCart = async (product) => {
-    if (!user) return toast.error("Please login first");
-    try {
-      await axios.post(`${process.env.REACT_APP_BASE_URL}/api/cart/add`, {
-        userId: user.id, productId: product.id, quantity: 1
-      });
-      toast.success("Added to Cart");
-      fetchCart();
-    } catch (error) { toast.error("Failed to add to cart"); }
-  };
+
 
   const toggleWishlist = async (id, e) => {
     e.stopPropagation();

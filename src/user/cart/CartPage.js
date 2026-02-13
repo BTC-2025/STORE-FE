@@ -18,18 +18,7 @@ const CartPage = () => {
     setUser(userData);
   }, []);
 
-  // Fetch cart items and wishlist when user is available
-  useEffect(() => {
-    if (user) {
-      fetchCartItems();
-      fetchWishlist();
-    } else {
-      // If no user, stop loading immediately
-      setLoading(false);
-    }
-  }, [user]);
-
-  const fetchCartItems = async () => {
+  const fetchCartItems = React.useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(
@@ -42,9 +31,9 @@ const CartPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const fetchWishlist = async () => {
+  const fetchWishlist = React.useCallback(async () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BASE_URL}/api/wishlist/userid/${user.id}`
@@ -54,7 +43,20 @@ const CartPage = () => {
     } catch (error) {
       console.error("Error fetching wishlist:", error);
     }
-  };
+  }, [user]);
+
+  // Fetch cart items and wishlist when user is available
+  useEffect(() => {
+    if (user) {
+      fetchCartItems();
+      fetchWishlist();
+    } else {
+      // If no user, stop loading immediately
+      setLoading(false);
+    }
+  }, [user, fetchCartItems, fetchWishlist]);
+
+
 
   // Check if a product is in wishlist
   const isInWishlist = (productId) => {
@@ -97,15 +99,15 @@ const CartPage = () => {
   // Update quantity
   const updateQuantity = async (cartId, newQuantity) => {
     if (newQuantity < 1) return;
-    
+
     try {
       await axios.put(
         `${process.env.REACT_APP_BASE_URL}/api/cart/update/cardid/${cartId}`,
         { quantity: newQuantity }
       );
-      
-      setCartItems(prevItems => 
-        prevItems.map(item => 
+
+      setCartItems(prevItems =>
+        prevItems.map(item =>
           item.id === cartId ? { ...item, quantity: newQuantity } : item
         )
       );
@@ -161,7 +163,7 @@ const CartPage = () => {
   //         }
   //       }
   //     );
-      
+
   //     const cartItem = cartItems.find(item => item.productId === productId);
   //     if (cartItem) {
   //       await removeItem(cartItem.id);
@@ -184,16 +186,16 @@ const CartPage = () => {
   // Calculate prices
   const calculatePrices = () => {
     const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    
+
     const totalDiscount = cartItems.reduce((acc, item) => {
       const discountPercent = item.discount / 100 || 0;
       return acc + (item.price * discountPercent * item.quantity);
     }, 0);
-    
+
     const deliveryFee = totalPrice > 50 ? 0 : 9.99;
     const protectFee = cartItems.length > 0 ? 9 : 0;
     const finalAmount = cartItems.length > 0 ? totalPrice - totalDiscount + deliveryFee + protectFee : 0;
-    
+
     return { totalPrice, totalDiscount, deliveryFee, protectFee, finalAmount };
   };
 
@@ -227,9 +229,9 @@ const CartPage = () => {
               <i className={`fas fa-${message.type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2`}></i>
               {message.text}
             </div>
-            <button 
-              type="button" 
-              className="cart-toast-close" 
+            <button
+              type="button"
+              className="cart-toast-close"
               onClick={() => setMessage({ show: false, text: "", type: "" })}
             >
               &times;
@@ -251,10 +253,10 @@ const CartPage = () => {
               <p className="cart-subtitle">Your shopping cart</p>
             )}
           </div>
-          
+
           {user && cartItems.length > 0 && (
             <div className="cart-actions">
-              <button 
+              <button
                 className="cart-empty-btn"
                 onClick={emptyCart}
               >
@@ -264,7 +266,7 @@ const CartPage = () => {
             </div>
           )}
         </div>
-        
+
         <nav className="cart-breadcrumb">
           <ol>
             <li><a href="/">Home</a></li>
@@ -317,33 +319,33 @@ const CartPage = () => {
         //   </div>
         // </div>
 
-              <div className="cart-guest-container">
-        <div className="cart-guest-content">
-          <div className="cart-guest-icon">
-            <i className="fas fa-shopping-cart"></i>
-          </div>
-          <h2 className="cart-guest-title">Missing Cart Items?</h2>
-          <p className="cart-guest-text">
-            Please log in to view your cart items and continue shopping.
-          </p>
-          <div className="cart-guest-buttons">
-            <button 
-              className="btn btn-primary"
-              onClick={() => navigate('/login', { state: { from: 'cart' } })}
-            >
-              <i className="fas fa-sign-in-alt me-2"></i>
-              Login
-            </button>
-            <button 
-              className="btn btn-outline-primary"
-              onClick={() => navigate('/register', { state: { from: 'cart' } })}
-            >
-              <i className="fas fa-user-plus me-2"></i>
-              Create Account
-            </button>
+        <div className="cart-guest-container">
+          <div className="cart-guest-content">
+            <div className="cart-guest-icon">
+              <i className="fas fa-shopping-cart"></i>
+            </div>
+            <h2 className="cart-guest-title">Missing Cart Items?</h2>
+            <p className="cart-guest-text">
+              Please log in to view your cart items and continue shopping.
+            </p>
+            <div className="cart-guest-buttons">
+              <button
+                className="btn btn-primary"
+                onClick={() => navigate('/login', { state: { from: 'cart' } })}
+              >
+                <i className="fas fa-sign-in-alt me-2"></i>
+                Login
+              </button>
+              <button
+                className="btn btn-outline-primary"
+                onClick={() => navigate('/register', { state: { from: 'cart' } })}
+              >
+                <i className="fas fa-user-plus me-2"></i>
+                Create Account
+              </button>
+            </div>
           </div>
         </div>
-      </div>
       ) : (
         <div className="cart-content">
           {/* Left: Cart Items */}
@@ -352,7 +354,7 @@ const CartPage = () => {
               <div className="cart-items-header">
                 <h2 className="cart-items-title">Cart Items ({cartItems.length})</h2>
               </div>
-              
+
               <div className="cart-items-body">
                 {cartItems.length === 0 ? (
                   <div className="cart-empty-state">
@@ -378,17 +380,17 @@ const CartPage = () => {
                           className="cart-item-img"
                         />
                       </div>
-                      
+
                       <div className="cart-item-details">
                         <h3 className="cart-item-title">{item.Product?.name}</h3>
                         <p className="cart-item-category">{item.Product?.category}</p>
-                        
+
                         {item.discount > 0 && (
                           <span className="cart-item-discount-badge">
                             -{item.discount}% OFF
                           </span>
                         )}
-                        
+
                         <div className="cart-item-stock">
                           <span className="stock-badge in-stock">
                             <i className="fas fa-box me-1"></i>
@@ -396,43 +398,43 @@ const CartPage = () => {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="cart-item-quantity">
                         <div className="quantity-controls">
-                          <button 
+                          <button
                             className="quantity-btn"
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             disabled={item.quantity <= 1}
                           >
                             <i className="fas fa-minus"></i>
                           </button>
-                          
+
                           <span className="quantity-value">{item.quantity}</span>
-                          
-                          <button 
+
+                          <button
                             className="quantity-btn"
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           >
                             <i className="fas fa-plus"></i>
                           </button>
                         </div>
-                        
+
                         <div className="cart-item-price">
                           <span className="price-current">₹{(item.price * item.quantity).toFixed(2)}</span>
-                          
+
                           {item.discount > 0 && (
                             <div className="price-discount">
                               <span className="price-original">
-                                ₹{(item.price * item.quantity / (1 - item.discount/100)).toFixed(2)}
+                                ₹{(item.price * item.quantity / (1 - item.discount / 100)).toFixed(2)}
                               </span>
                               <span className="price-save">
-                                Save ₹{(item.price * item.quantity * item.discount/100).toFixed(2)}
+                                Save ₹{(item.price * item.quantity * item.discount / 100).toFixed(2)}
                               </span>
                             </div>
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="cart-item-actions">
                         <button
                           className="cart-action-btn cart-action-remove"
@@ -441,7 +443,7 @@ const CartPage = () => {
                         >
                           <i className="fas fa-trash"></i>
                         </button>
-                        
+
                         <button
                           className={`cart-action-btn ${isInWishlist(item.productId) ? 'cart-action-wishlist-active' : 'cart-action-wishlist'}`}
                           onClick={() => toggleWishlist(item.productId)}
@@ -463,42 +465,42 @@ const CartPage = () => {
               <div className="cart-summary-header">
                 <h2 className="cart-summary-title">Order Summary</h2>
               </div>
-              
+
               <div className="cart-summary-body">
                 <div className="summary-row">
                   <span>Subtotal ({cartItems.reduce((acc, item) => acc + item.quantity, 0)} items)</span>
                   <span>₹{totalPrice.toFixed(2)}</span>
                 </div>
-                
+
                 <div className="summary-row discount">
                   <span>Discount</span>
                   <span>- ₹{totalDiscount.toFixed(2)}</span>
                 </div>
-                
+
                 <div className="summary-row">
                   <span>Delivery Charges</span>
                   <span className={deliveryFee === 0 ? "free-delivery" : ""}>
                     {deliveryFee === 0 ? "FREE" : `₹${deliveryFee.toFixed(2)}`}
                   </span>
                 </div>
-                
+
                 <div className="summary-row">
                   <span>Protection Fee</span>
                   <span>₹{protectFee.toFixed(2)}</span>
                 </div>
-                
+
                 <div className="summary-divider"></div>
-                
+
                 <div className="summary-total">
                   <span>Total Amount</span>
                   <span className="total-amount">₹{finalAmount.toFixed(2)}</span>
                 </div>
-                
+
                 <div className="summary-savings">
                   <i className="fas fa-tags me-2"></i>
                   You save <strong>₹{totalDiscount.toFixed(2)}</strong> on this order
                 </div>
-                
+
                 <button
                   className="checkout-btn"
                   disabled={cartItems.length === 0}
@@ -507,7 +509,7 @@ const CartPage = () => {
                   <i className="fas fa-lock me-2"></i>
                   PROCEED TO CHECKOUT
                 </button>
-                
+
                 <div className="security-notice">
                   <i className="fas fa-shield-alt me-2"></i>
                   Your transaction is secure and encrypted

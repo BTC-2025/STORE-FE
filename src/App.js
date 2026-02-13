@@ -19,7 +19,7 @@ import MyOrders from "./user/orders/MyOrders";
 import PaymentStatus from "./user/payment/PaymentStatus";
 import OrderSuccess from "./user/orders/OrderSuccess";
 
-import ProductListing2 from "./user/products/ProductListing2";
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -79,7 +79,6 @@ function App() {
             }
           />
           <Route path="/products" element={<ProductListing />} />
-          <Route path="/products2" element={<ProductListing2 />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />

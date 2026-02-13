@@ -1,6 +1,6 @@
 // components/ChatBot.js
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Form, InputGroup, Card, ListGroup } from 'react-bootstrap';
+import { Button, Form, InputGroup, Card } from 'react-bootstrap';
 import './ChatBot.css';
 
 const ChatBot = ({ showChat, setShowChat }) => {
@@ -50,7 +50,7 @@ const ChatBot = ({ showChat, setShowChat }) => {
 
   const generateBotResponse = (userMessage) => {
     const message = userMessage.toLowerCase();
-    
+
     if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
       return {
         id: messages.length + 2,
@@ -59,7 +59,7 @@ const ChatBot = ({ showChat, setShowChat }) => {
         timestamp: new Date()
       };
     }
-    
+
     if (message.includes('product') || message.includes('item')) {
       return {
         id: messages.length + 2,
@@ -68,7 +68,7 @@ const ChatBot = ({ showChat, setShowChat }) => {
         timestamp: new Date()
       };
     }
-    
+
     if (message.includes('price') || message.includes('cost') || message.includes('expensive')) {
       return {
         id: messages.length + 2,
@@ -77,7 +77,7 @@ const ChatBot = ({ showChat, setShowChat }) => {
         timestamp: new Date()
       };
     }
-    
+
     if (message.includes('delivery') || message.includes('shipping') || message.includes('arrive')) {
       return {
         id: messages.length + 2,
@@ -86,7 +86,7 @@ const ChatBot = ({ showChat, setShowChat }) => {
         timestamp: new Date()
       };
     }
-    
+
     if (message.includes('return') || message.includes('refund') || message.includes('exchange')) {
       return {
         id: messages.length + 2,
@@ -95,7 +95,7 @@ const ChatBot = ({ showChat, setShowChat }) => {
         timestamp: new Date()
       };
     }
-    
+
     if (message.includes('help') || message.includes('support') || message.includes('problem')) {
       return {
         id: messages.length + 2,
@@ -104,7 +104,7 @@ const ChatBot = ({ showChat, setShowChat }) => {
         timestamp: new Date()
       };
     }
-    
+
     if (message.includes('thank') || message.includes('thanks')) {
       return {
         id: messages.length + 2,
@@ -121,7 +121,7 @@ const ChatBot = ({ showChat, setShowChat }) => {
       "I'm your shopping assistant! Feel free to ask about our products, categories, or any other shopping-related questions.",
       "Let me help you find what you're looking for! What specific information would you like to know?"
     ];
-    
+
     return {
       id: messages.length + 2,
       text: defaultResponses[Math.floor(Math.random() * defaultResponses.length)],
@@ -141,7 +141,7 @@ const ChatBot = ({ showChat, setShowChat }) => {
   return (
     <div className="shopbot-container">
       {/* Chat Button */}
-      <Button 
+      <Button
         variant="danger"
         className={`shopbot-toggle-btn ${showChat ? 'shopbot-active' : ''}`}
         onClick={toggleChat}
@@ -165,8 +165,8 @@ const ChatBot = ({ showChat, setShowChat }) => {
                 </small>
               </div>
             </div>
-            <Button 
-              variant="link" 
+            <Button
+              variant="link"
               className="shopbot-close p-0"
               onClick={toggleChat}
             >
@@ -189,7 +189,7 @@ const ChatBot = ({ showChat, setShowChat }) => {
                   </div>
                 </div>
               ))}
-              
+
               {isTyping && (
                 <div className="shopbot-msg shopbot-msg-bot">
                   <div className="shopbot-msg-content">
@@ -201,7 +201,7 @@ const ChatBot = ({ showChat, setShowChat }) => {
                   </div>
                 </div>
               )}
-              
+
               <div ref={messagesEndRef} />
             </div>
           </Card.Body>
@@ -216,8 +216,8 @@ const ChatBot = ({ showChat, setShowChat }) => {
                   onChange={(e) => setInputMessage(e.target.value)}
                   className="shopbot-input w-50"
                 />
-                <Button 
-                //   variant="primary" 
+                <Button
+                  //   variant="primary" 
                   variant='success'
                   type="submit"
                   disabled={!inputMessage.trim()}

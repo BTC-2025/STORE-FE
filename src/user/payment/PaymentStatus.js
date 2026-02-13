@@ -54,7 +54,7 @@ const PaymentStatus = () => {
                 clearTimeout(redirect);
             };
         }
-    }, [status, navigate]);
+    }, [status, navigate, orderId]);
 
     return (
         <div className="payment-status-container">

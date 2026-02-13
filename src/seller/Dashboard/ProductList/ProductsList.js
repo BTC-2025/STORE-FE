@@ -11,17 +11,11 @@ const ProductsList = ({ sellerToken, onBackToDashboard }) => {
   const [editFormData, setEditFormData] = useState({});
   const [categories, setCategories] = useState([]);
 
-  useEffect(() => {
-    fetchProducts();
-    // Mock categories - you might want to fetch these from an API
-    setCategories(['Clothing', 'Electronics', 'Home & Kitchen', 'Beauty', 'Sports', 'Books']);
-  }, [sellerToken]);
-
-  const fetchProducts = async () => {
+  const fetchProducts = React.useCallback(async () => {
     try {
       const tokenPayload = JSON.parse(atob(sellerToken.split('.')[1]));
       const sellerId = tokenPayload.id || tokenPayload.sellerId;
-      
+
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/api/seller/products/seller/${sellerId}`,
         {
@@ -30,11 +24,11 @@ const ProductsList = ({ sellerToken, onBackToDashboard }) => {
           }
         }
       );
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
-      
+
       const data = await response.json();
       setProducts(data);
       setLoading(false);
@@ -43,7 +37,15 @@ const ProductsList = ({ sellerToken, onBackToDashboard }) => {
       setError(error.message);
       setLoading(false);
     }
-  };
+  }, [sellerToken]);
+
+  useEffect(() => {
+    fetchProducts();
+    // Mock categories - you might want to fetch these from an API
+    setCategories(['Clothing', 'Electronics', 'Home & Kitchen', 'Beauty', 'Sports', 'Books']);
+  }, [fetchProducts]);
+
+
 
   const handleEditClick = (product) => {
     setEditingProduct(product.id);
@@ -82,10 +84,10 @@ const ProductsList = ({ sellerToken, onBackToDashboard }) => {
   const handleSaveEdit = async (productId) => {
     try {
       // Convert tagline string to array
-      const taglineArray = editFormData.tagline 
+      const taglineArray = editFormData.tagline
         ? editFormData.tagline.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
         : [];
-      
+
       const updatedProduct = {
         name: editFormData.name,
         slug: editFormData.slug,
@@ -115,11 +117,11 @@ const ProductsList = ({ sellerToken, onBackToDashboard }) => {
           body: JSON.stringify(updatedProduct)
         }
       );
-      
+
       if (!response.ok) {
         throw new Error('Failed to update product');
       }
-      
+
       // Refresh the products list
       await fetchProducts();
       setEditingProduct(null);
@@ -146,11 +148,11 @@ const ProductsList = ({ sellerToken, onBackToDashboard }) => {
           }
         }
       );
-      
+
       if (!response.ok) {
         throw new Error('Failed to delete product');
       }
-      
+
       // Refresh the products list
       await fetchProducts();
       alert('Product deleted successfully!');
@@ -212,7 +214,7 @@ const ProductsList = ({ sellerToken, onBackToDashboard }) => {
                 </div>
               )}
             </div>
-            
+
             <div className="seller-product-info">
               {editingProduct === product.id ? (
                 // Edit Form
@@ -456,13 +458,13 @@ const ProductsList = ({ sellerToken, onBackToDashboard }) => {
             <div className="seller-product-actions">
               {editingProduct === product.id ? (
                 <>
-                  <button 
+                  <button
                     className="seller-btn-save"
                     onClick={() => handleSaveEdit(product.id)}
                   >
                     <FaSave /> Save
                   </button>
-                  <button 
+                  <button
                     className="seller-btn-cancel"
                     onClick={handleCancelEdit}
                   >
@@ -474,13 +476,13 @@ const ProductsList = ({ sellerToken, onBackToDashboard }) => {
                   <button className="seller-btn-view">
                     <FaEye /> View
                   </button>
-                  <button 
+                  <button
                     className="seller-btn-edit"
                     onClick={() => handleEditClick(product)}
                   >
                     <FaEdit /> Edit
                   </button>
-                  <button 
+                  <button
                     className="seller-btn-delete"
                     onClick={() => handleDeleteProduct(product.id)}
                   >

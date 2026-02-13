@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import TopSelling from "../sections/TopSelling";
 import NewArrivals from "../sections/NewArrivals";
 import BestSellers from "../sections/BestSellers";
