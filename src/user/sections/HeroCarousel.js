@@ -1,46 +1,52 @@
 // HeroCarousel.jsx
 import React from 'react';
-import { Carousel, Button } from 'react-bootstrap';
+import { Carousel } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import '../styles//HeroCarousel.css'; // Optional for custom stylingi
+import '../home/Home.css'; // Use new Home.css
 import electronics from '../../assests/elec.jpg'
 import fashion from '../../assests/fash.jpg'
 import home from '../../assests/home.jpg'
 
 const HeroCarousel = () => {
-  // Sample slides data
   const slides = [
     {
       id: 1,
       image: electronics,
-      headline: 'Latest Electronics Collection',
-      description: 'Discover the newest gadgets and devices.',
-      buttonText: 'Shop Now',
-      buttonLink: '#'
+      headline: 'Latest Electronics',
+      description: 'Discover the newest gadgets and high-performance devices.',
+      buttonText: 'Shop Electronics',
+      buttonLink: '/products?category=Electronics'
     },
     {
       id: 2,
       image: fashion,
-      headline: 'Trendy Fashion Styles',
-      description: 'Upgrade your wardrobe with our exclusive collection.',
-      buttonText: 'Explore',
-      buttonLink: '#'
+      headline: 'Trendy Fashion',
+      description: 'Upgrade your wardrobe with our cursor-curated collection.',
+      buttonText: 'Shop Fashion',
+      buttonLink: '/products?category=Clothing'
     },
     {
       id: 3,
       image: home,
-      headline: 'Beautiful Home Decor',
-      description: 'Make your home elegant and cozy.',
+      headline: 'Modern Home Decor',
+      description: 'Transform your living space with elegant furniture.',
       buttonText: 'Shop Home',
-      buttonLink: '#'
+      buttonLink: '/products?category=Home%20%26%20Kitchen'
     }
   ];
 
   return (
-    <div className="hero-carousel">
-      <Carousel indicators={true} controls={true} interval={4000}>
+    <div className="hero-section">
+      <Carousel
+        indicators={true}
+        controls={true}
+        interval={5000}
+        fade={true}
+        className="hero-carousel"
+      >
         {slides.map(slide => (
           <Carousel.Item key={slide.id}>
+            <div className="overlay"></div>
             <img
               className="d-block w-100 hero-image"
               src={slide.image}
@@ -49,7 +55,9 @@ const HeroCarousel = () => {
             <Carousel.Caption className="hero-caption">
               <h2>{slide.headline}</h2>
               <p>{slide.description}</p>
-              <Button href={slide.buttonLink} variant="primary">{slide.buttonText}</Button>
+              <a href={slide.buttonLink} className="hero-btn hero-btn-primary">
+                {slide.buttonText}
+              </a>
             </Carousel.Caption>
           </Carousel.Item>
         ))}

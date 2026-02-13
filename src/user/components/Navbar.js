@@ -3,58 +3,56 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Navbar.css";
 
-const Navbar = () => {
+const Navbar = ({ user: propUser, onLogout }) => {
   const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState(null);
+  const [localUser, setLocalUser] = useState(null); // Fallback if prop not used
+  const [seller, setSeller] = useState(null); // Seller state
   const [cartCount, setCartCount] = useState(0);
   const [query, setQuery] = useState("");
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const navigate = useNavigate();
 
+  // Use propUser if available, otherwise fallback to localUser (but propUser is preferred for sync)
+  const user = propUser || localUser;
+
   // Create refs for the input and dropdown
   const searchInputRef = useRef(null);
   const historyDropdownRef = useRef(null);
 
   useEffect(() => {
+    // Check for local user logic fallback
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser) setLocalUser(storedUser);
+
+    // Check for seller
+    const storedSeller = JSON.parse(localStorage.getItem("sellerData"));
+    if (storedSeller) setSeller(storedSeller);
+
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
 
     // Close dropdown when clicking outside
     const handleClickOutside = (event) => {
-      if (historyDropdownRef.current && !historyDropdownRef.current.contains(event.target) && 
-          searchInputRef.current && !searchInputRef.current.contains(event.target)) {
+      if (historyDropdownRef.current && !historyDropdownRef.current.contains(event.target) &&
+        searchInputRef.current && !searchInputRef.current.contains(event.target)) {
         setShowHistory(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
 
-    const fetchUserAndCart = async () => {
-      try {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          const res = await axios.get(
-            `${process.env.REACT_APP_BASE_URL}/api/profile/${parsedUser.id}`
-          );
-          setUser(res.data);
-
-          // Fetch cart count for logged-in user
-          fetchCartCount(parsedUser.id);
-        }
-      } catch (error) {
-        console.error("Error fetching user or cart:", error);
-      }
-    };
-
-    fetchUserAndCart();
+    // NOTE: Main user state is now managed by App.js and passed via propUser.
+    // We only fetch cart count here if user exists
+    if (user || storedUser) {
+      fetchCartCount((user || storedUser).id);
+    }
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [user]); // Re-run when user changes
 
   const fetchCartCount = async (userId) => {
     try {
@@ -68,12 +66,26 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-    setCartCount(0);
-    window.location.reload();
+    if (onLogout) {
+      onLogout();
+    } else {
+      // Fallback
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      // Also clear seller data if logged out from here? 
+      // Usually disjoint, but for safety in this context:
+      // localStorage.removeItem("sellerToken");
+      // localStorage.removeItem("sellerData"); 
+
+      setLocalUser(null);
+      setCartCount(0);
+      window.location.reload();
+    }
+    navigate('/');
   };
+
+  // ... (keep fetchHistory, handleSearch, deleteSearchHistoryItem, clearSearchHistory as is)
 
   const fetchHistory = async () => {
     try {
@@ -111,20 +123,20 @@ const Navbar = () => {
 
   const deleteSearchHistoryItem = async (id, e) => {
     if (e) e.stopPropagation();
-    
+
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       if (user) {
         await axios.delete(
           `${process.env.REACT_APP_BASE_URL}/api/searchbar/historybyid/?id=${id}&userId=${user.id}`
         );
-        
+
         // Store the input element before state change
         const inputElement = searchInputRef.current;
-        
+
         // Remove the item from local state
         setHistory(history.filter((item) => item.id !== id));
-        
+
         // Restore focus after state update
         setTimeout(() => {
           if (inputElement) {
@@ -145,13 +157,13 @@ const Navbar = () => {
         await axios.delete(
           `${process.env.REACT_APP_BASE_URL}/api/searchbar/history?userId=${user.id}`
         );
-        
+
         // Store the input element before state change
         const inputElement = searchInputRef.current;
-        
+
         // Clear the local state
         setHistory([]);
-        
+
         // Restore focus after state update
         setTimeout(() => {
           if (inputElement) {
@@ -167,9 +179,8 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`navbar navbar-expand-md navbar-light shadow-sm sticky-top ${
-        scrolled ? "scrolled" : ""
-      }`}
+      className={`navbar navbar-expand-md navbar-light shadow-sm sticky-top ${scrolled ? "scrolled" : ""
+        }`}
     >
       <div className="container align-items-center">
         {/* Brand */}
@@ -272,11 +283,15 @@ const Navbar = () => {
         {/* Nav Items */}
         <div className="collapse navbar-collapse" id="navMenu">
           <ul className="navbar-nav ms-auto align-items-lg-center">
-            <li className="nav-item">
-              <a className="nav-link" href="#seller">
-                <i className="bi bi-shop me-2"></i>Become a Seller
-              </a>
-            </li>
+
+            {/* 🔽 HIDE 'Become a Seller' if seller is logged in */}
+            {!seller && (
+              <li className="nav-item">
+                <a className="nav-link" href="#seller">
+                  <i className="bi bi-shop me-2"></i>Become a Seller
+                </a>
+              </li>
+            )}
 
             {/* Profile dropdown */}
             <li className="nav-item dropdown profile-dropdown d-none d-lg-block">
@@ -289,7 +304,11 @@ const Navbar = () => {
                 aria-expanded="false"
               >
                 <i className="bi bi-person me-1"></i>
-                {user ? user.fullName : "Profile"}
+                {/* 🔽 SHOW Seller Name if User is null but Seller exists */}
+                {user
+                  ? (user.name || user.fullName || "User")
+                  : (seller ? (seller.name || seller.businessName || "Seller") : "Profile")
+                }
               </a>
 
               <ul
@@ -297,7 +316,7 @@ const Navbar = () => {
                 aria-labelledby="profileDropdown"
                 style={{ minWidth: "250px" }}
               >
-                {!user ? (
+                {!user && !seller ? (
                   <li className="px-2 py-2">
                     <h6 className="fw-bold mb-1">Welcome</h6>
                     <p className="text-muted small mb-2">

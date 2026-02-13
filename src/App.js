@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from './user/components/Navbar';
 import Footer from './user/components/Footer';
@@ -16,6 +16,10 @@ import CheckoutPage from "./user/checkout/CheckOutPage";
 import Admin from "./admin/Admin";
 import Seller from "./seller/Seller";
 import MyOrders from "./user/orders/MyOrders";
+import PaymentStatus from "./user/payment/PaymentStatus";
+import OrderSuccess from "./user/orders/OrderSuccess";
+
+import ProductListing2 from "./user/products/ProductListing2";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -51,40 +55,49 @@ function App() {
 
   return (
     <Router>
-      {/* Navbar gets user info */}
-      <Navbar 
-        user={user} 
-        onLoginClick={() => setShowLogin(true)} 
-        onLogout={handleLogout} 
-      />
-
       <Routes>
-        <Route 
-          path="/" 
-          element={
-            <Home 
-              showLogin={showLogin} 
-              setShowLogin={setShowLogin} 
-              onLogin={handleLogin} 
+        {/* User Routes with Navbar & Footer */}
+        <Route element={
+          <>
+            <Navbar
+              user={user}
+              onLoginClick={() => setShowLogin(true)}
+              onLogout={handleLogout}
             />
-          } 
-        />
-        <Route path="/products" element={<ProductListing />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path='/login' element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/checkout/:id" element={<Checkout />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/cart-checkout" element={<CheckoutPage />} />
+            <Outlet />
+            <Footer />
+          </>
+        }>
+          <Route
+            path="/"
+            element={
+              <Home
+                showLogin={showLogin}
+                setShowLogin={setShowLogin}
+                onLogin={handleLogin}
+              />
+            }
+          />
+          <Route path="/products" element={<ProductListing />} />
+          <Route path="/products2" element={<ProductListing2 />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path='/login' element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/checkout/:id" element={<Checkout />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/cart-checkout" element={<CheckoutPage />} />
+          <Route path="/orders" element={<MyOrders />} />
+          <Route path="/order-success" element={<OrderSuccess />} />
+          <Route path="/payment/status" element={<PaymentStatus />} />
+        </Route>
+
+        {/* Admin & Seller Routes (Standalone) */}
         <Route path='/admin' element={<Admin />} />
         <Route path='/seller' element={<Seller />} />
-        <Route path="/orders" element={<MyOrders />} />
       </Routes>
-
-      <Footer />
     </Router>
   );
 }

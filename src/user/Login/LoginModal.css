@@ -1,0 +1,209 @@
+/* LoginModal Styles */
+
+.login-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    padding: var(--spacing-lg);
+    transition: opacity 0.3s ease;
+}
+
+.login-modal-dialog {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    transform: translateY(0) scale(1);
+    transition: all 0.4s ease-in-out;
+}
+
+.login-modal-content {
+    background: var(--color-white);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-2xl);
+    position: relative;
+}
+
+.login-modal-body {
+    display: flex;
+    min-height: 500px;
+}
+
+/* Left Section - Blue Background */
+.login-modal-left {
+    flex: 0 0 40%;
+    background: linear-gradient(135deg, #2874f0 0%, #1e5bc6 100%);
+    color: var(--color-white);
+    padding: var(--spacing-3xl) var(--spacing-2xl);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.login-modal-left h4 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-white);
+}
+
+.login-modal-left p {
+    font-size: var(--font-size-base);
+    opacity: 0.9;
+    line-height: var(--line-height-relaxed);
+}
+
+.login-modal-image {
+    text-align: center;
+    padding-top: var(--spacing-3xl);
+}
+
+.login-modal-image img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Right Section - Form */
+.login-modal-right {
+    flex: 1;
+    padding: var(--spacing-3xl) var(--spacing-2xl);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-modal-form {
+    margin-bottom: var(--spacing-lg);
+}
+
+.login-modal-form .form-control {
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-lg);
+    transition: var(--transition-base);
+}
+
+.login-modal-form .form-control:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.login-modal-form .btn-primary {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--color-primary-gradient);
+    color: var(--color-white);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: var(--transition-all);
+    box-shadow: var(--shadow-primary);
+}
+
+.login-modal-form .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Links */
+.login-modal-links {
+    margin-top: var(--spacing-lg);
+    text-align: center;
+}
+
+.login-modal-links a {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-text-light);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    transition: var(--transition-base);
+}
+
+.login-modal-links a:hover {
+    color: var(--color-primary);
+}
+
+.login-modal-links .text-primary {
+    color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Close Button */
+.login-modal-close {
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-all);
+    z-index: 10;
+}
+
+.login-modal-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: rotate(90deg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .login-modal-overlay {
+        padding: var(--spacing-md);
+    }
+
+    .login-modal-body {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    .login-modal-left {
+        flex: 0 0 auto;
+        padding: var(--spacing-xl) var(--spacing-lg);
+    }
+
+    .login-modal-left .login-modal-image {
+        display: none;
+    }
+
+    .login-modal-right {
+        padding: var(--spacing-xl) var(--spacing-lg);
+    }
+}
+
+@media (max-width: 480px) {
+    .login-modal-dialog {
+        max-width: 100%;
+    }
+
+    .login-modal-left {
+        padding: var(--spacing-lg) var(--spacing-md);
+    }
+
+    .login-modal-right {
+        padding: var(--spacing-lg) var(--spacing-md);
+    }
+
+    .login-modal-left h4 {
+        font-size: var(--font-size-xl);
+    }
+}

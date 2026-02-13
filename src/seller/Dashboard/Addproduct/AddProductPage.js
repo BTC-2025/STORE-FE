@@ -1,6 +1,5 @@
-// AddProductPage.js
 import React, { useState, useEffect } from 'react';
-import { FaArrowLeft, FaPlus, FaUpload, FaInfoCircle } from 'react-icons/fa';
+import { FaArrowLeft, FaPlus, FaUpload, FaInfoCircle, FaTag, FaBoxOpen, FaImage, FaListUl, FaCheck, FaTimes } from 'react-icons/fa';
 import './AddProductPage.css';
 
 const AddProductPage = ({ sellerToken, onBackToDashboard }) => {
@@ -24,6 +23,8 @@ const AddProductPage = ({ sellerToken, onBackToDashboard }) => {
     tagline: [''],
     discount: 0
   });
+
+  const [activeTab, setActiveTab] = useState('general'); // For mobile/tablet tabs if needed
 
   useEffect(() => {
     fetchBrands();
@@ -53,28 +54,28 @@ const AddProductPage = ({ sellerToken, onBackToDashboard }) => {
           'Authorization': `Bearer ${sellerToken}`
         }
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch brands');
       }
-      
+
       const data = await response.json();
       setBrands(data);
     } catch (error) {
       console.error('Error fetching brands:', error);
-      alert('Failed to load brands. Please try again.');
+      // alert('Failed to load brands. Please try again.');
     }
   };
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
-      const taglineArray = newProduct.tagline[0] 
-        ? newProduct.tagline[0].split(',').map(tag => tag.trim()) 
+      const taglineArray = newProduct.tagline[0]
+        ? newProduct.tagline[0].split(',').map(tag => tag.trim())
         : [];
-      
+
       const productData = [{
         name: newProduct.name,
         slug: newProduct.slug || newProduct.name.toLowerCase().replace(/\s+/g, '-'),
@@ -102,289 +103,275 @@ const AddProductPage = ({ sellerToken, onBackToDashboard }) => {
         },
         body: JSON.stringify(productData)
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to add product');
       }
-      
-      const data = await response.json();
-      alert('Product added successfully!');
+
       onBackToDashboard();
     } catch (error) {
       console.error('Error adding product:', error);
-      alert('Failed to add product. Please check all fields and try again.');
+      alert('Failed to add product. Please check fields.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="ap-container">
-      <div className="ap-header">
-        <button className="ap-back-btn" onClick={onBackToDashboard}>
-          <FaArrowLeft />
-        </button>
-        <h1 className="ap-title">Add New Product</h1>
-        <div className="ap-header-actions">
-          <button className="ap-save-btn" onClick={handleAddProduct} disabled={loading}>
-            {loading ? 'Saving...' : 'Save Product'}
-          </button>
-        </div>
-      </div>
+  // Helper change handler
+  const handleChange = (field, value) => {
+    setNewProduct(prev => ({ ...prev, [field]: value }));
+  };
 
-      <div className="ap-content">
-        {brands.length === 0 ? (
-          <div className="ap-no-brands">
-            <div className="ap-no-brands-icon">
-              <FaInfoCircle />
+  if (!brands.length && !loading) { // Simple empty state if no brands
+    // (In real app, might want to check loading status of brands fetch first)
+  }
+
+  return (
+    <div className="ap-page">
+      <div className="ap-container">
+        {/* Header */}
+        <div className="ap-header">
+          <button className="ap-back-link" onClick={onBackToDashboard}>
+            <FaArrowLeft /> Back to Dashboard
+          </button>
+          <div className="ap-header-content">
+            <div>
+              <h1 className="ap-title">Add New Product</h1>
+              <p className="ap-subtitle">Fill in the details to list your product</p>
             </div>
-            <h2>Create a Brand First</h2>
-            <p>You need to create a brand before you can add products.</p>
-            <button className="ap-primary-btn" onClick={onBackToDashboard}>
-              Back to Dashboard
-            </button>
+            <div className="ap-header-actions">
+              <button className="ap-btn-secondary" onClick={onBackToDashboard}>Cancel</button>
+              <button className="ap-btn-primary" onClick={handleAddProduct} disabled={loading}>
+                {loading ? 'Saving...' : 'Publish Product'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {brands.length === 0 ? (
+          <div className="ap-empty-state">
+            <div className="ap-empty-icon"><FaTag /></div>
+            <h3>No Brands Found</h3>
+            <p>You need to create a brand before adding products.</p>
+            <button className="ap-btn-primary" onClick={onBackToDashboard}>Go to Brands</button>
           </div>
         ) : (
-          <div className="ap-form-container">
-            <form onSubmit={handleAddProduct} className="ap-form">
-              <div className="ap-form-grid">
-                {/* Basic Information */}
-                <div className="ap-form-section">
-                  <h3 className="ap-section-title">Basic Information</h3>
-                  
-                  <div className="ap-input-group">
-                    <label className="ap-label">Product Name *</label>
+          <form className="ap-grid" onSubmit={handleAddProduct}>
+            {/* Left Column */}
+            <div className="ap-col-main">
+              {/* General Info Card */}
+              <div className="ap-card">
+                <div className="ap-card-header">
+                  <FaBoxOpen className="ap-card-icon" />
+                  <h3>General Information</h3>
+                </div>
+                <div className="ap-card-body">
+                  <div className="ap-form-group">
+                    <label>Product Name *</label>
                     <input
                       type="text"
                       className="ap-input"
+                      placeholder="e.g. Wireless Noise Cancelling Headphones"
                       value={newProduct.name}
-                      onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                      onChange={(e) => handleChange('name', e.target.value)}
                       required
-                      placeholder="Enter product name"
                     />
                   </div>
-                  
-                  <div className="ap-input-group">
-                    <label className="ap-label">Slug</label>
-                    <input
-                      type="text"
-                      className="ap-input"
-                      value={newProduct.slug}
-                      onChange={(e) => setNewProduct({...newProduct, slug: e.target.value})}
-                      placeholder="Will be generated from name if empty"
-                    />
-                  </div>
-                  
-                  <div className="ap-input-group">
-                    <label className="ap-label">Short Description *</label>
+                  <div className="ap-form-group">
+                    <label>Short Description *</label>
                     <textarea
-                      className="ap-textarea"
-                      value={newProduct.shortDescription}
-                      onChange={(e) => setNewProduct({...newProduct, shortDescription: e.target.value})}
-                      required
-                      placeholder="Brief description of the product"
+                      className="ap-input"
                       rows="2"
-                    />
-                  </div>
-                  
-                  <div className="ap-input-group">
-                    <label className="ap-label">Full Description *</label>
-                    <textarea
-                      className="ap-textarea"
-                      value={newProduct.description}
-                      onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                      placeholder="Brief overview for listing pages..."
+                      value={newProduct.shortDescription}
+                      onChange={(e) => handleChange('shortDescription', e.target.value)}
                       required
-                      placeholder="Detailed description of the product"
-                      rows="4"
+                    />
+                  </div>
+                  <div className="ap-form-group">
+                    <label>Full Description *</label>
+                    <textarea
+                      className="ap-input"
+                      rows="6"
+                      placeholder="Detailed product specifications, features, etc."
+                      value={newProduct.description}
+                      onChange={(e) => handleChange('description', e.target.value)}
+                      required
                     />
                   </div>
                 </div>
+              </div>
 
-                {/* Pricing & Inventory */}
-                <div className="ap-form-section">
-                  <h3 className="ap-section-title">Pricing & Inventory</h3>
-                  
-                  <div className="ap-input-row">
-                    <div className="ap-input-group">
-                      <label className="ap-label">Price (₹) *</label>
+              {/* Pricing & Inventory Card */}
+              <div className="ap-card">
+                <div className="ap-card-header">
+                  <FaListUl className="ap-card-icon" />
+                  <h3>Pricing & Inventory</h3>
+                </div>
+                <div className="ap-card-body">
+                  <div className="ap-row-2">
+                    <div className="ap-form-group">
+                      <label>Base Price ($) *</label>
                       <input
                         type="number"
-                        step="0.01"
                         className="ap-input"
-                        value={newProduct.price}
-                        onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-                        required
                         placeholder="0.00"
+                        value={newProduct.price}
+                        onChange={(e) => handleChange('price', e.target.value)}
+                        required
                       />
                     </div>
-                    
-                    <div className="ap-input-group">
-                      <label className="ap-label">Stock Quantity *</label>
+                    <div className="ap-form-group">
+                      <label>Discount (%)</label>
                       <input
                         type="number"
                         className="ap-input"
-                        value={newProduct.stock}
-                        onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
-                        required
                         placeholder="0"
+                        value={newProduct.discount}
+                        onChange={(e) => handleChange('discount', e.target.value)}
                       />
                     </div>
                   </div>
-                  
-                  <div className="ap-input-group">
-                    <label className="ap-label">SKU (Stock Keeping Unit)</label>
-                    <input
-                      type="text"
-                      className="ap-input"
-                      value={newProduct.sku}
-                      onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})}
-                      placeholder="Unique identifier for the product"
-                    />
-                  </div>
-                  
-                  <div className="ap-input-group">
-                    <label className="ap-label">Discount (%)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      className="ap-input"
-                      value={newProduct.discount}
-                      onChange={(e) => setNewProduct({...newProduct, discount: e.target.value})}
-                      placeholder="0"
-                    />
+
+                  <div className="ap-row-2">
+                    <div className="ap-form-group">
+                      <label>Stock Quantity *</label>
+                      <input
+                        type="number"
+                        className="ap-input"
+                        placeholder="0"
+                        value={newProduct.stock}
+                        onChange={(e) => handleChange('stock', e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="ap-form-group">
+                      <label>SKU</label>
+                      <input
+                        type="text"
+                        className="ap-input"
+                        placeholder="Stock Keeping Unit"
+                        value={newProduct.sku}
+                        onChange={(e) => handleChange('sku', e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {/* Media & Categorization */}
-                <div className="ap-form-section">
-                  <h3 className="ap-section-title">Media & Categorization</h3>
-                  
-                  <div className="ap-input-group">
-                    <label className="ap-label">Image URL *</label>
-                    <div className="ap-file-upload">
-                      <input
-                        type="url"
-                        className="ap-input"
-                        value={newProduct.image}
-                        onChange={(e) => setNewProduct({...newProduct, image: e.target.value})}
-                        required
-                        placeholder="https://example.com/product-image.jpg"
-                      />
-                      <button type="button" className="ap-upload-btn">
-                        <FaUpload /> Upload
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="ap-input-row">
-                    <div className="ap-input-group">
-                      <label className="ap-label">Category *</label>
-                      <input
-                        type="text"
-                        className="ap-input"
-                        value={newProduct.category}
-                        onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
-                        required
-                        placeholder="e.g., Snacks, Electronics"
-                      />
-                    </div>
-                    
-                    <div className="ap-input-group">
-                      <label className="ap-label">Subcategory</label>
-                      <input
-                        type="text"
-                        className="ap-input"
-                        value={newProduct.subcategory}
-                        onChange={(e) => setNewProduct({...newProduct, subcategory: e.target.value})}
-                        placeholder="e.g., Chips, Mobile Phones"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="ap-input-group">
-                    <label className="ap-label">Brand *</label>
+            {/* Right Column */}
+            <div className="ap-col-sidebar">
+              {/* Organization Card */}
+              <div className="ap-card">
+                <div className="ap-card-header">
+                  <FaTag className="ap-card-icon" />
+                  <h3>Organization</h3>
+                </div>
+                <div className="ap-card-body">
+                  <div className="ap-form-group">
+                    <label>Brand *</label>
                     <select
                       className="ap-select"
                       value={selectedBrand}
                       onChange={(e) => setSelectedBrand(e.target.value)}
                       required
                     >
-                      <option value="">Select a brand</option>
-                      {brands.map(brand => (
-                        <option key={brand.id} value={brand.id}>
-                          {brand.name}
-                        </option>
+                      <option value="">Select Brand</option>
+                      {brands.map(b => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
                       ))}
                     </select>
                   </div>
-                  
-                  <div className="ap-input-group">
-                    <label className="ap-label">Tagline (comma separated)</label>
+
+                  <div className="ap-form-group">
+                    <label>Category *</label>
                     <input
                       type="text"
                       className="ap-input"
-                      value={newProduct.tagline[0] || ''}
-                      onChange={(e) => setNewProduct({...newProduct, tagline: [e.target.value]})}
-                      placeholder="creamy, organic, fresh, etc."
+                      placeholder="e.g. Electronics"
+                      value={newProduct.category}
+                      onChange={(e) => handleChange('category', e.target.value)}
+                      required
                     />
                   </div>
-                </div>
 
-                {/* Additional Settings */}
-                <div className="ap-form-section">
-                  <h3 className="ap-section-title">Additional Settings</h3>
-                  
-                  <div className="ap-checkbox-group">
-                    <label className="ap-checkbox-label">
-                      <input
-                        type="checkbox"
-                        className="ap-checkbox"
-                        checked={newProduct.isAvailable}
-                        onChange={(e) => setNewProduct({...newProduct, isAvailable: e.target.checked})}
-                      />
-                      <span className="ap-checkbox-custom"></span>
-                      Product is available for purchase
-                    </label>
-                  </div>
-                  
-                  <div className="ap-checkbox-group">
-                    <label className="ap-checkbox-label">
-                      <input
-                        type="checkbox"
-                        className="ap-checkbox"
-                        checked={newProduct.isFeatured}
-                        onChange={(e) => setNewProduct({...newProduct, isFeatured: e.target.checked})}
-                      />
-                      <span className="ap-checkbox-custom"></span>
-                      Feature this product
-                    </label>
-                  </div>
-                  
-                  <div className="ap-input-group">
-                    <label className="ap-label">Created By</label>
+                  <div className="ap-form-group">
+                    <label>Subcategory</label>
                     <input
                       type="text"
                       className="ap-input"
-                      value={newProduct.createdBy}
-                      onChange={(e) => setNewProduct({...newProduct, createdBy: e.target.value})}
-                      placeholder="Your name or identifier"
+                      placeholder="e.g. Audio"
+                      value={newProduct.subcategory}
+                      onChange={(e) => handleChange('subcategory', e.target.value)}
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="ap-form-actions">
-                <button type="button" onClick={onBackToDashboard} className="ap-cancel-btn">
-                  Cancel
-                </button>
-                <button type="submit" className="ap-submit-btn" disabled={loading}>
-                  {loading ? 'Adding Product...' : 'Add Product'}
-                </button>
+              {/* Media Card */}
+              <div className="ap-card">
+                <div className="ap-card-header">
+                  <FaImage className="ap-card-icon" />
+                  <h3>Product Media</h3>
+                </div>
+                <div className="ap-card-body">
+                  <div className="ap-form-group">
+                    <label>Image URL *</label>
+                    <div className="ap-url-input-wrapper">
+                      <input
+                        type="url"
+                        className="ap-input"
+                        placeholder="https://..."
+                        value={newProduct.image}
+                        onChange={(e) => handleChange('image', e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="ap-image-preview-area">
+                    {newProduct.image ? (
+                      <img src={newProduct.image} alt="Preview" className="ap-preview-img" onError={(e) => e.target.style.display = 'none'} />
+                    ) : (
+                      <div className="ap-preview-placeholder">
+                        <FaUpload />
+                        <small>Preview will appear here</small>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </form>
-          </div>
+
+              {/* Visibility Card */}
+              <div className="ap-card">
+                <div className="ap-card-header">
+                  <FaCheck className="ap-card-icon" />
+                  <h3>Visibility</h3>
+                </div>
+                <div className="ap-card-body">
+                  <label className="ap-toggle-row">
+                    <span>Available for Purchase</span>
+                    <input
+                      type="checkbox"
+                      checked={newProduct.isAvailable}
+                      onChange={(e) => handleChange('isAvailable', e.target.checked)}
+                    />
+                  </label>
+                  <hr className="ap-divider" />
+                  <label className="ap-toggle-row">
+                    <span>Feature Product</span>
+                    <input
+                      type="checkbox"
+                      checked={newProduct.isFeatured}
+                      onChange={(e) => handleChange('isFeatured', e.target.checked)}
+                    />
+                  </label>
+                </div>
+              </div>
+
+            </div>
+          </form>
         )}
       </div>
     </div>

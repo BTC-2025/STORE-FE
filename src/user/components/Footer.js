@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './Footer.css';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -75,13 +76,13 @@ const Footer = () => {
             ) : (
               <form onSubmit={handleSubmit} className="mt-3">
                 <div className="input-group">
-                  <input 
-                    type="email" 
-                    className="form-control" 
-                    placeholder="Your email" 
+                  <input
+                    type="email"
+                    className="form-control"
+                    placeholder="Your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required 
+                    required
                   />
                   <button className="btn btn-primary" type="submit">
                     <i className="bi bi-send-fill"></i>

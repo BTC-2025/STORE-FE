@@ -1,8 +1,8 @@
 // NewArrivals.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
-import "../styles/NewArrivals.css";
+import ProductCard from "../components/ProductCard";
+import "../home/Home.css";
 
 const NewArrivals = () => {
   const [products, setProducts] = useState([]);
@@ -12,7 +12,7 @@ const NewArrivals = () => {
     const fetchProducts = async () => {
       try {
         const res = await axios.get(
-          "https://store-kedb.onrender.com/api/product/new"
+          `${process.env.REACT_APP_BASE_URL}/api/product/new`
         );
         setProducts(res.data);
       } catch (err) {
@@ -25,31 +25,17 @@ const NewArrivals = () => {
     fetchProducts();
   }, []);
 
-  if (loading)
-    return <div className="new-arrivals-container">Loading...</div>;
+  if (loading) return <div className="text-center py-5">Loading...</div>;
 
   return (
-    <div className="new-arrivals-container">
-      <h2>New Arrivals</h2>
+    <div className="section-container">
+      <div className="section-header">
+        <h2>New Arrivals</h2>
+        <a href="/products?sort=newest" className="view-all-link">View All</a>
+      </div>
       <div className="products-grid">
         {products.slice(0, 4).map((product) => (
-          <div key={product.id} className="product-item">
-            <Link to={`/product/${product.id}`} className="arrival-link">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="arrival-image"
-              />
-              <div className="arrival-info">
-                <h4 className="arrival-name">{product.name}</h4>
-                <p className="arrival-discount">
-                  {product.discount > 0
-                    ? `Min. ${product.discount}% Off`
-                    : "Special offer"}
-                </p>
-              </div>
-            </Link>
-          </div>
+          <ProductCard key={product.id} product={product} />
         ))}
       </div>
     </div>

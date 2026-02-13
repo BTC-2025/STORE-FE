@@ -1,108 +1,85 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ProductListing.css';
-import { useNavigate } from 'react-router-dom';
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from 'react-router-dom';
+import { toast, Toaster } from 'react-hot-toast';
 
 const ProductListing = () => {
   const location = useLocation();
-  const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [categories, setCategories] = useState([
-    { 
-      name: 'Electronics', 
-      subCategories: ['Mobiles & Accessories', 'Laptops & Accessories', 'Computers & Components', 'Audio & Wearables', 'Cameras & Photography', 'TVs & Home Entertainment', 'Gaming', 'Home Appliances', 'Networking & Smart Devices', 'Electronic Accessories'] 
-    },
-    { 
-      name: 'Clothing', 
-      subCategories: ['Men Top Wear', 'Men Bottom Wear', 'Women Ethnic', 'Women Western', 'Men Footwear', 'Women Footwear'] 
-    },
-    { 
-      name: 'Home & Kitchen', 
-      subCategories: ['Furniture', 'Kitchen & Dining', 'Home Decor', 'Bed Linens', 'Bath'] 
-    },
-    { 
-      name: 'Beauty', 
-      subCategories: ['Makeup', 'Skincare', 'Haircare', 'Fragrances', 'Personal Care'] 
-    },
-    { 
-      name: 'Sports', 
-      subCategories: ['Fitness', 'Outdoor', 'Team Sports', 'Water Sports', 'Cycling'] 
-    },
-    { 
-      name: 'Books', 
-      subCategories: ['Fiction', 'Non-Fiction', 'Academic', 'Children Books', 'Best Sellers'] 
-    },
-    { 
-      name: 'Toys', 
-      subCategories: ['Action Figures', 'Educational', 'Outdoor Toys', 'Board Games', 'Puzzles'] 
-    },
-    {
-      name:'Accessories',
-      subCategories: ['Watches', 'Bags', 'Jewelry', 'Sunglasses', 'Belts']
-    },
-    { 
-      name: 'Grocery', 
-      subCategories: ['Food Cupboard', 'Beverages', 'Snacks', 'Dairy', 'Frozen Foods'] 
-    },
-    { 
-      name: 'Furniture', 
-      subCategories: ['Living Room', 'Bedroom', 'Dining Room', 'Office', 'Outdoor'] 
-    }
-  ]);
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedSubCategory, setSelectedSubCategory] = useState('');
-  const [subCategories, setSubCategories] = useState([]);
-  const [sortOption, setSortOption] = useState('');
-  const [priceRange, setPriceRange] = useState([0, 1000000]);
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedRatings, setSelectedRatings] = useState([]);
-  const [selectedDiscounts, setSelectedDiscounts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState('grid');
-  const [cartMessage, setCartMessage] = useState({ show: false, text: '', type: '' });
-  const [carted, setCarted] = useState([]);
-  const [wishlist, setWishlist] = useState([]);
-  const [hoveredCategory, setHoveredCategory] = useState(null);
-
-  const user = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate();
 
-  const fetchProducts = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/api/product`
-      );
-      setProducts(response.data);
-      setFilteredProducts(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      setLoading(false);
-    }
-  };
+  // -- State --
+  const [allProducts, setAllProducts] = useState([]); // Store all products for client-side reset
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // New function to fetch products by subcategory
-  const fetchProductsBySubCategory = async (subcategory) => {
-
-    try {
-      setLoading(true);
-      const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/api/product/subcategory/filter?subcategory=${encodeURIComponent(subcategory)}`
-      );
-      setProducts(response.data);
-      setFilteredProducts(response.data);
-      setSelectedSubCategory(subcategory);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching products by subcategory:", error);
-      setLoading(false);
+  // Filters Data
+  const [categories, setCategories] = useState([
+    {
+      name: 'Electronics',
+      subCategories: ['Mobiles & Accessories', 'Laptops & Accessories', 'Computers & Components', 'Audio & Wearables', 'Cameras & Photography', 'TVs & Home Entertainment', 'Gaming', 'Home Appliances', 'Networking & Smart Devices', 'Electronic Accessories']
+    },
+    {
+      name: 'Clothing',
+      subCategories: ['Men Top Wear', 'Men Bottom Wear', 'Women Ethnic', 'Women Western', 'Men Footwear', 'Women Footwear']
+    },
+    {
+      name: 'Home & Kitchen',
+      subCategories: ['Furniture', 'Kitchen & Dining', 'Home Decor', 'Bed Linens', 'Bath']
+    },
+    {
+      name: 'Beauty',
+      subCategories: ['Makeup', 'Skincare', 'Haircare', 'Fragrances', 'Personal Care']
+    },
+    {
+      name: 'Sports',
+      subCategories: ['Fitness', 'Outdoor', 'Team Sports', 'Water Sports', 'Cycling']
+    },
+    {
+      name: 'Books',
+      subCategories: ['Fiction', 'Non-Fiction', 'Academic', 'Children Books', 'Best Sellers']
+    },
+    {
+      name: 'Toys',
+      subCategories: ['Action Figures', 'Educational', 'Outdoor Toys', 'Board Games', 'Puzzles']
+    },
+    {
+      name: 'Accessories',
+      subCategories: ['Watches', 'Bags', 'Jewelry', 'Sunglasses', 'Belts']
+    },
+    {
+      name: 'Grocery',
+      subCategories: ['Food Cupboard', 'Beverages', 'Snacks', 'Dairy', 'Frozen Foods']
+    },
+    {
+      name: 'Furniture',
+      subCategories: ['Living Room', 'Bedroom', 'Dining Room', 'Office', 'Outdoor']
     }
-  };
+  ]);
+
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedSubCategory, setSelectedSubCategory] = useState('');
+  const [expandedCategory, setExpandedCategory] = useState(''); // For accordion logic
+
+  const [sortOption, setSortOption] = useState('');
+  const [priceRange, setPriceRange] = useState([0, 100000]);
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [selectedRatings, setSelectedRatings] = useState([]);
+  const [viewMode, setViewMode] = useState('grid');
+
+  // User & Cart State
+  const user = JSON.parse(localStorage.getItem('user'));
+  const [carted, setCarted] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+
+  const [showFilters, setShowFilters] = useState(false);
+
+  // -- Effects --
 
   useEffect(() => {
     if (location.state?.products) {
+      setAllProducts(location.state.products); // Cache passed products too
       setProducts(location.state.products);
       setFilteredProducts(location.state.products);
       setLoading(false);
@@ -113,76 +90,12 @@ const ProductListing = () => {
 
   useEffect(() => {
     if (user) {
-      alreadyCarted();
-    }
-  }, [user]);
-
-  const alreadyCarted = async () => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/cart/userid/${user.id}`);
-      setCarted(response.data);
-    } catch (error) {
-      console.error('Error fetching cart items:', error);
-    }
-  };
-
-  const isInCart = (productId) => {
-    return carted.some(item => item.productId === productId);
-  };
-
-  useEffect(() => {
-    if (user) {
+      fetchCart();
       fetchWishlist();
     }
-  }, [user]);
+  }, []);
 
-  const fetchWishlist = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/api/wishlist/userid/${user.id}`
-      );
-      const productIds = response.data.map(item => item.productId);
-      setWishlist(productIds);
-    } catch (error) {
-      console.error('Error fetching wishlist:', error);
-    }
-  };
-
-  const isInWishlist = (productId) => {
-    return wishlist.includes(productId);
-  };
-
-  const toggleWishlist = async (productId, e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    
-    try {
-      if (isInWishlist(productId)) {
-        await axios.delete(
-          `${process.env.REACT_APP_BASE_URL}/api/wishlist/userid/${user.id}/productid/${productId}`
-        );
-        setWishlist(prev => prev.filter(id => id !== productId));
-      } else {
-        await axios.post(
-          `${process.env.REACT_APP_BASE_URL}/api/wishlist`,
-          {
-            userId: user.id,
-            productId: productId
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        setWishlist(prev => [...prev, productId]);
-        navigate(0)
-      }
-    } catch (error) {
-      console.error('Error toggling wishlist:', error);
-    }
-  };
-
+  // Filtering Logic
   useEffect(() => {
     let result = [...products];
 
@@ -190,7 +103,12 @@ const ProductListing = () => {
       result = result.filter(product => product.category === selectedCategory);
     }
 
-    result = result.filter(product => 
+    // Client-side subcategory logic
+    if (selectedSubCategory && !loading) {
+      result = result.filter(product => product.subcategory === selectedSubCategory);
+    }
+
+    result = result.filter(product =>
       product.price >= priceRange[0] && product.price <= priceRange[1]
     );
 
@@ -199,531 +117,405 @@ const ProductListing = () => {
     }
 
     if (selectedRatings.length > 0) {
-      result = result.filter(product => 
-        selectedRatings.includes(Math.floor(product.averageRating))
+      result = result.filter(product =>
+        selectedRatings.includes(Math.floor(product.averageRating || 0))
       );
     }
 
-    if (selectedDiscounts.length > 0) {
-      result = result.filter(product => 
-        selectedDiscounts.some(discount => product.discount >= discount)
-      );
-    }
-
-    if (sortOption) {
-      switch(sortOption) {
-        case 'priceLowToHigh':
-          result.sort((a, b) => a.price - b.price);
-          break;
-        case 'priceHighToLow':
-          result.sort((a, b) => b.price - a.price);
-          break;
-        case 'topRating':
-          result.sort((a, b) => b.averageRating - a.averageRating);
-          break;
-        case 'newestFirst':
-          result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-          break;
-        case 'popular':
-          result.sort((a, b) => b.soldCount - a.soldCount);
-          break;
-        default:
-          break;
-      }
-    }
+    // Sorting
+    if (sortOption === 'priceLowToHigh') result.sort((a, b) => a.price - b.price);
+    if (sortOption === 'priceHighToLow') result.sort((a, b) => b.price - a.price);
+    if (sortOption === 'topRating') result.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+    if (sortOption === 'newestFirst') result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    if (sortOption === 'popular') result.sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
 
     setFilteredProducts(result);
-  }, [
-    products, selectedCategory, sortOption, priceRange, 
-    selectedBrands, selectedRatings, selectedDiscounts,
-  ]);
+  }, [products, selectedCategory, selectedSubCategory, sortOption, priceRange, selectedBrands, selectedRatings]);
 
-  const handleCategorySelect = (category) => {
-    setSelectedCategory(category);
-    setSelectedSubCategory('');
-    // Reset to all products when selecting a main category
-    fetchProducts();
+
+  // -- API Calls --
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/product`);
+      setAllProducts(response.data); // Cache full list
+      setProducts(response.data);
+      setFilteredProducts(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      toast.error("Failed to load products");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // New function to handle subcategory selection
-  const handleSubCategorySelect = (subCategory) => {
-    fetchProductsBySubCategory(subCategory);
-    setHoveredCategory(null); // Close the dropdown
+  const fetchProductsBySubCategory = async (subcategory) => {
+    if (allProducts.length > 0) {
+      setProducts(allProducts); // Ensure we filter from full list
+      setSelectedSubCategory(subcategory);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/api/product/subcategory/filter?subcategory=${encodeURIComponent(subcategory)}`
+      );
+      setProducts(response.data);
+      setSelectedSubCategory(subcategory);
+    } catch (error) {
+      toast.error("Failed to load subcategory products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCart = async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/cart/userid/${user.id}`);
+      setCarted(res.data);
+    } catch (err) { console.error(err); }
+  };
+
+  const fetchWishlist = async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/wishlist/userid/${user.id}`);
+      setWishlist(res.data.map(item => item.productId));
+    } catch (err) { console.error(err); }
+  };
+
+  // -- Actions --
+  const handleCategoryClick = (catName) => {
+    if (selectedCategory === catName) {
+      setExpandedCategory(expandedCategory === catName ? '' : catName);
+    } else {
+      setSelectedCategory(catName);
+      setExpandedCategory(catName);
+      setSelectedSubCategory('');
+      // Use cached allProducts instead of re-fetching
+      if (allProducts.length > 0) {
+        setProducts(allProducts);
+      } else {
+        fetchProducts();
+      }
+    }
+  };
+
+  const handleSubCategoryClick = (sub, e) => {
+    e.stopPropagation();
+    fetchProductsBySubCategory(sub);
   };
 
   const handleBrandToggle = (brand) => {
-    if (selectedBrands.includes(brand)) {
-      setSelectedBrands(selectedBrands.filter(b => b !== brand));
-    } else {
-      setSelectedBrands([...selectedBrands, brand]);
-    }
+    setSelectedBrands(prev => prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]);
   };
 
   const handleRatingToggle = (rating) => {
-    if (selectedRatings.includes(rating)) {
-      setSelectedRatings(selectedRatings.filter(r => r !== rating));
-    } else {
-      setSelectedRatings([...selectedRatings, rating]);
-    }
-  };
-
-  const handleDiscountToggle = (discount) => {
-    if (selectedDiscounts.includes(discount)) {
-      setSelectedDiscounts(selectedDiscounts.filter(d => d !== discount));
-    } else {
-      setSelectedDiscounts([...selectedDiscounts, discount]);
-    }
-  };
-
-  const getUniqueBrands = () => {
-    const brands = products.map(product => product.brand);
-    return [...new Set(brands)];
-  };
-
-  const resetFilters = () => {
-    setSelectedCategory('');
-    setSelectedSubCategory('');
-    setSubCategories([]);
-    setSortOption('');
-    setPriceRange([0, 1000000]);
-    setSelectedBrands([]);
-    setSelectedRatings([]);
-    setSelectedDiscounts([]);
-    fetchProducts(); // Reset to all products
+    setSelectedRatings(prev => prev.includes(rating) ? prev.filter(r => r !== rating) : [...prev, rating]);
   };
 
   const addToCart = async (product) => {
+    if (!user) return toast.error("Please login first");
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      const cartData = {
-        userId: user.id,
-        productId: product.id,
-        quantity: 1,
-      };
+      await axios.post(`${process.env.REACT_APP_BASE_URL}/api/cart/add`, {
+        userId: user.id, productId: product.id, quantity: 1
+      });
+      toast.success("Added to Cart");
+      fetchCart();
+    } catch (error) { toast.error("Failed to add to cart"); }
+  };
 
-      const response = await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/api/cart/add`,
-        cartData,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (response.status === 200 || response.status === 201) {
-        showCartMessage('Added to cart successfully!', 'success');
-        navigate(0);
+  const toggleWishlist = async (id, e) => {
+    e.stopPropagation();
+    if (!user) return toast.error("Please login first");
+    try {
+      if (wishlist.includes(id)) {
+        await axios.delete(`${process.env.REACT_APP_BASE_URL}/api/wishlist/userid/${user.id}/productid/${id}`);
+        setWishlist(prev => prev.filter(w => w !== id));
+        toast.success("Removed from Wishlist");
       } else {
-        throw new Error('Failed to add to cart');
+        await axios.post(`${process.env.REACT_APP_BASE_URL}/api/wishlist`, { userId: user.id, productId: id });
+        setWishlist(prev => [...prev, id]);
+        toast.success("Added to Wishlist");
       }
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      showCartMessage('Failed to add to cart. Please try again.', 'error');
-    }
+    } catch (error) { toast.error("Wishlist error"); }
   };
 
-  const showCartMessage = (text, type) => {
-    setCartMessage({ show: true, text, type });
-    
-    setTimeout(() => {
-      setCartMessage({ show: false, text: '', type: '' });
-    }, 3000);
-  };
+  // -- Helpers --
+  const getUniqueBrands = () => [...new Set(products.map(p => p.brand))].filter(Boolean);
+  const getCategoryCount = (name) => products.filter(p => p.category === name).length;
 
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-  
+  if (loading) return <div className="pl-loading">Loading products...</div>;
+
   return (
-    <div className="container-fluid pb-4 ecommerce-container">
-      {/* Toast Notification */}
-      {cartMessage.show && (
-        <div className={`enhanced-toast ${cartMessage.type}`}>
-          <div className="toast-content">
-            <i className={`fas ${cartMessage.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
-            <span>{cartMessage.text}</span>
-          </div>
-          <button onClick={() => setCartMessage({ show: false, text: '', type: '' })}>
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-      )}
+    <div className="pl-page-container">
+      <Toaster position="top-right" />
 
-      {/* Top Category Navigation Bar */}
-      {/* <div className="top-category-nav">
-        <div className="container">
-          <div className="category-nav-inner">
-            {categories.map((category, index) => (
-              <div 
-                key={index}
-                className="category-nav-item"
-                onMouseEnter={() => setHoveredCategory(index)}
-                onMouseLeave={() => setHoveredCategory(null)}
-                onClick={() => handleCategorySelect(category.name)}
+      {/* Mobile Filter Overlay */}
+      <div
+        className={`pl-sidebar-overlay ${showFilters ? 'active' : ''}`}
+        onClick={() => setShowFilters(false)}
+      ></div>
+
+      {/* Header & Controls */}
+      <div className="pl-header">
+        <h1 className="pl-title">{selectedSubCategory || selectedCategory || 'All Products'}</h1>
+
+        <div className="pl-controls-row">
+          <div className="pl-filter-chips">
+            {/* Mobile Filter Button */}
+            <button
+              className="pl-chip pl-mobile-filter-btn"
+              onClick={() => setShowFilters(true)}
+            >
+              <i className="fas fa-filter"></i> Filters
+            </button>
+            <button
+              className={`pl-chip ${sortOption === 'popular' ? 'active' : ''}`}
+              onClick={() => setSortOption(sortOption === 'popular' ? '' : 'popular')}
+            >
+              Most Popular
+            </button>
+            <button
+              className={`pl-chip ${sortOption === 'priceLowToHigh' ? 'active' : ''}`}
+              onClick={() => setSortOption(sortOption === 'priceLowToHigh' ? '' : 'priceLowToHigh')}
+            >
+              Price: Low to High
+            </button>
+
+            {/* Brand Chips */}
+            {getUniqueBrands().slice(0, 3).map(brand => (
+              <button
+                key={brand}
+                className={`pl-chip ${selectedBrands.includes(brand) ? 'active' : ''}`}
+                onClick={() => handleBrandToggle(brand)}
               >
-                <span className={selectedCategory === category.name ? 'active' : ''}>
-                  {category.name}
-                </span>
+                {brand}
+              </button>
+            ))}
+          </div>
 
-                {hoveredCategory === index && (
-                  <div className="subcategory-dropdown">
-                    <div className="subcategory-grid">
-                      {category.subCategories.map((subCategory, subIndex) => (
-                        <div 
-                          key={subIndex} 
-                          className="subcategory-item"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSubCategorySelect(subCategory);
-                          }}
+          <div className="pl-view-controls">
+            <button className={`pl-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`} onClick={() => setViewMode('grid')}>
+              <i className="fas fa-th"></i> Grid
+            </button>
+            <button className={`pl-toggle-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
+              <i className="fas fa-list"></i> List
+            </button>
+            <span className="pl-product-count-badge">{filteredProducts.length} Items</span>
+          </div>
+        </div>
+
+        {/* Applied Filters */}
+        {(selectedBrands.length > 0 || selectedRatings.length > 0 || selectedCategory) && (
+          <div className="pl-applied-filters">
+            <span>Applied:</span>
+            {selectedCategory && (
+              <span className="pl-applied-tag">
+                {selectedCategory} <i className="fas fa-times" onClick={() => {
+                  setSelectedCategory('');
+                  setExpandedCategory('');
+                  fetchProducts();
+                }}></i>
+              </span>
+            )}
+            {selectedBrands.map(b => (
+              <span key={b} className="pl-applied-tag">
+                {b} <i className="fas fa-times" onClick={() => handleBrandToggle(b)}></i>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="pl-content-layout">
+        {/* Sidebar */}
+        <aside className={`pl-sidebar ${showFilters ? 'open' : ''}`}>
+          <div className="pl-sidebar-header-mobile">
+            <h3>Filters</h3>
+            <button className="pl-close-sidebar" onClick={() => setShowFilters(false)}>
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
+          <div className="pl-sidebar-group">
+            <h3 className="pl-sidebar-title">Categories</h3>
+            <div className="pl-category-list">
+              {categories.map(cat => (
+                <div key={cat.name} className="pl-category-group">
+                  <div
+                    className={`pl-category-item ${selectedCategory === cat.name ? 'active' : ''}`}
+                    onClick={() => handleCategoryClick(cat.name)}
+                  >
+                    <span>{cat.name}</span>
+                    <span className="count">{getCategoryCount(cat.name)}</span>
+                  </div>
+
+                  {/* Accordion Subcategories */}
+                  {expandedCategory === cat.name && (
+                    <div className="pl-subcategory-list">
+                      {cat.subCategories.map(sub => (
+                        <div
+                          key={sub}
+                          className={`pl-subcategory-item ${selectedSubCategory === sub ? 'active' : ''}`}
+                          onClick={(e) => handleSubCategoryClick(sub, e)}
                         >
-                          {subCategory}
+                          {sub}
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div> */}
-      <div className="top-category-nav p-0">
-  <div className="">
-    <div className="category-nav-inner">
-      {categories.map((category, index) => (
-        <div 
-          key={index}
-          className="category-nav-item"
-          onMouseEnter={() => setHoveredCategory(index)}
-          onMouseLeave={() => setHoveredCategory(null)}
-          onClick={() => handleCategorySelect(category.name)}
-        >
-          <span className={selectedCategory === category.name ? 'active' : ''}>
-            {category.name}
-          </span>
-
-          {hoveredCategory === index && (
-            <div className="subcategory-dropdown">
-              <div className="subcategory-grid">
-                {category.subCategories.map((subCategory, subIndex) => (
-                  <div 
-                    key={subIndex} 
-                    className="subcategory-item"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSubCategorySelect(subCategory);
-                    }}
-                  >
-                    {subCategory}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  </div>
-</div>
-
-
-      {/* Page Header */}
-      <div className="page-header-section mb-5 mt-4">
-        <div className="header-content text-center">
-          <h1 className="page-title">Discover Our Products</h1>
-          <p className="page-subtitle">Find the perfect items for your needs</p>
-          {selectedSubCategory && (
-            <div className="selected-subcategory-badge">
-              Showing results for: <strong>{selectedSubCategory}</strong>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="row">
-        {/* Mobile Filter Toggle */}
-        <div className="col-12 d-lg-none mb-4">
-          <button 
-            className="enhanced-filter-toggle"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <i className={`fas fa-${showFilters ? 'times' : 'filter'}`}></i>
-            {showFilters ? 'Hide Filters' : 'Show Filters'}
-            <span className="filter-badge">{filteredProducts.length}</span>
-          </button>
-        </div>
-
-        {/* Filters Sidebar */}
-        <div className={`col-lg-3 ${showFilters ? 'd-block' : 'd-none d-lg-block'}`}>
-          <div className="enhanced-sidebar">
-            <div className="sidebar-header">
-              <h3>Filters</h3>
-              <button className="reset-filters-btn" onClick={resetFilters}>
-                <i className="fas fa-redo"></i>
-                Reset
-              </button>
-            </div>
-
-            <div className="filter-section">
-              <h4 className="filter-title">Sort By</h4>
-              <select 
-                className="enhanced-select" 
-                value={sortOption} 
-                onChange={(e) => setSortOption(e.target.value)}
-              >
-                <option value="">Select Option</option>
-                <option value="priceLowToHigh">Price: Low to High</option>
-                <option value="priceHighToLow">Price: High to Low</option>
-                <option value="topRating">Top Rating</option>
-                <option value="newestFirst">Newest First</option>
-                <option value="popular">Most Popular</option>
-              </select>
-            </div>
-
-            <div className="filter-section">
-              <h4 className="filter-title">Price Range</h4>
-              <div className="price-range-container">
-                <div className="price-display">
-                  <span>${priceRange[0].toLocaleString()}</span>
-                  <span>${priceRange[1].toLocaleString()}</span>
-                </div>
-                <input 
-                  type="range" 
-                  className="price-slider" 
-                  min="0" 
-                  max="1000000" 
-                  step="10000"
-                  value={priceRange[1]} 
-                  onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                />
-              </div>
-            </div>
-
-            <div className="filter-section">
-              <h4 className="filter-title">Brand</h4>
-              <div className="brand-list">
-                {getUniqueBrands().map(brand => (
-                  <div className="checkbox-item" key={brand}>
-                    <label className="checkbox-label">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedBrands.includes(brand)}
-                        onChange={() => handleBrandToggle(brand)}
-                      />
-                      <span className="checkmark"></span>
-                      {brand}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="filter-section">
-              <h4 className="filter-title">Customer Ratings</h4>
-              <div className="rating-list">
-                {[4, 3, 2, 1].map(rating => (
-                  <div className="checkbox-item" key={rating}>
-                    <label className="checkbox-label">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedRatings.includes(rating)}
-                        onChange={() => handleRatingToggle(rating)}
-                      />
-                      <span className="checkmark"></span>
-                      <span className="rating-stars">
-                        {Array(rating).fill().map((_, i) => (
-                          <i key={i} className="fas fa-star"></i>
-                        ))}
-                        {rating < 5 && Array(5 - rating).fill().map((_, i) => (
-                          <i key={i} className="far fa-star"></i>
-                        ))} & Up
-                      </span>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="filter-section">
-              <h4 className="filter-title">Discount</h4>
-              <div className="discount-list">
-                {[10, 20, 30, 40, 50].map(discount => (
-                  <div className="checkbox-item" key={discount}>
-                    <label className="checkbox-label">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedDiscounts.includes(discount)}
-                        onChange={() => handleDiscountToggle(discount)}
-                      />
-                      <span className="checkmark"></span>
-                      {discount}% or more
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Products Listing */}
-        <div className="col-lg-9 mt-2">
-          <div className="listing-header">
-            <p className="results-count">
-              Showing <span>{filteredProducts.length}</span> products
-              {selectedCategory && (
-                <span> in <strong>{selectedCategory}</strong></span>
-              )}
-              {selectedSubCategory && (
-                <span> / <strong>{selectedSubCategory}</strong></span>
-              )}
-            </p>
-            <div className="view-toggle">
-              <button 
-                className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
-                onClick={() => setViewMode('grid')}
-              >
-                <i className="fas fa-th"></i>
-              </button>
-              <button 
-                className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-                onClick={() => setViewMode('list')}
-              >
-                <i className="fas fa-list"></i>
-              </button>
-            </div>
-          </div>
-
-          {filteredProducts.length > 0 ? (
-            <div className={viewMode === 'grid' ? "products-grid" : "products-list"}>
-              {filteredProducts.map(product => (
-                <div 
-                  key={product.id} 
-                  className="product-card-enhanced"
-                  onClick={() => navigate(`/product/${product.id}`)}
-                >
-                  <div className="product-image-container">
-                    <img src={product.image} alt={product.name} className="img-fluid"  />
-
-                    {product.discount > 0 && (
-                      <div className="discount-badge">
-                        -{product.discount}% OFF
-                      </div>
-                    )}
-                    
-                    <button 
-                      className={`wishlist-btn ${isInWishlist(product.id) ? 'active' : ''}`}
-                      onClick={(e) => toggleWishlist(product.id, e)}
-                    >
-                      <i className={isInWishlist(product.id) ? "fas fa-heart" : "far fa-heart"}></i>
-                    </button>
-
-                    <div className="product-actions">
-                      {isInCart(product.id) ? (
-                        <button 
-                          className="action-btn go-to-cart-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate('/cart');
-                          }}
-                        >
-                          <i className="fas fa-shopping-cart"></i>
-                          Go to Cart
-                        </button>
-                      ) : (
-                        <>
-                          <button 
-                            className="action-btn add-to-cart-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addToCart(product);
-                            }}
-                          >
-                            <i className="fas fa-shopping-cart"></i>
-                            Add to Cart
-                          </button>
-                          <button 
-                            className="action-btn buy-now-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addToCart(product);
-                              navigate(`/checkout/${product.id}`);
-                            }}
-                          >
-                            <i className="fas fa-bolt"></i>
-                            Buy Now
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="product-info">
-                    <div className="product-meta">
-                      <span className="product-category">{product.category}</span>
-                      <div className="product-rating">
-                        <div className="stars">
-                          {[...Array(5)].map((_, i) => (
-                            <i 
-                              key={i} 
-                              className={`fas fa-star ${i < Math.floor(product.averageRating) ? 'filled' : 'empty'}`}
-                            ></i>
-                          ))}
-                        </div>
-                        <span>({product.averageRating.toFixed(1)})</span>
-                      </div>
-                    </div>
-                    
-                    <h3 className="product-title">{product.name}</h3>
-                    <p className="product-description">{product.shortDescription}</p>
-                    
-                    <div className="product-price">
-                      <span className="current-price">${product.price}</span>
-                      {product.discount > 0 && (
-                        <span className="original-price">
-                          ${(product.price / (1 - product.discount/100)).toFixed(2)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="no-products-found">
-              <div className="no-products-content">
-                <i className="fas fa-search"></i>
-                <h3>No products found</h3>
-                <p>Try adjusting your filters to find what you're looking for</p>
-                <button className="primary-btn" onClick={resetFilters}>
-                  Reset All Filters
-                </button>
+          </div>
+
+          <div className="pl-sidebar-group">
+            <h3 className="pl-sidebar-title">Price Range</h3>
+            <div className="pl-price-slider">
+              <input
+                type="range" min="0" max="100000" step="1000"
+                value={priceRange[1]}
+                onChange={(e) => setPriceRange([0, Number(e.target.value)])}
+              />
+              <div className="pl-price-values">
+                <span>₹{priceRange[0]}</span>
+                <span>₹{priceRange[1]}</span>
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Pagination */}
-          {filteredProducts.length > 0 && (
-            <div className="enhanced-pagination">
-              <button className="pagination-btn" disabled>
-                <i className="fas fa-chevron-left"></i>
-              </button>
-              <button className="pagination-btn active">1</button>
-              <button className="pagination-btn">2</button>
-              <button className="pagination-btn">3</button>
-              <button className="pagination-btn">
-                <i className="fas fa-chevron-right"></i>
-              </button>
+          <div className="pl-sidebar-group">
+            <h3 className="pl-sidebar-title">Brands</h3>
+            {getUniqueBrands().map(brand => (
+              <label key={brand} className="pl-checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={selectedBrands.includes(brand)}
+                  onChange={() => handleBrandToggle(brand)}
+                />
+                <span className="pl-custom-check"></span>
+                {brand}
+              </label>
+            ))}
+          </div>
+
+          <div className="pl-sidebar-group">
+            <h3 className="pl-sidebar-title">Rating</h3>
+            {[5, 4, 3, 2, 1].map(r => (
+              <label key={r} className="pl-checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={selectedRatings.includes(r)}
+                  onChange={() => handleRatingToggle(r)}
+                />
+                <span className="pl-custom-check"></span>
+                <div className="pl-stars">
+                  {[...Array(5)].map((_, i) => (
+                    <i key={i} className={`fas fa-star ${i < r ? 'filled' : 'empty'}`}></i>
+                  ))}
+                </div>
+              </label>
+            ))}
+          </div>
+          {/* Mobile Apply Button */}
+          <button
+            className="pl-buy-btn w-100 mt-3 d-lg-none"
+            onClick={() => setShowFilters(false)}
+          >
+            Apply Filters
+          </button>
+        </aside>
+
+        {/* Product Grid */}
+        <main className={`pl-products-area ${viewMode}`}>
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map(product => (
+              <div
+                key={product.id}
+                className="pl-product-card"
+                onClick={() => navigate(`/product/${product.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="pl-card-image">
+                  <img src={product.image} alt={product.name} />
+                  {product.discount > 0 && (
+                    <span className="pl-discount-tag">-{product.discount}%</span>
+                  )}
+
+                  {/* Overlay & Actions */}
+                  <div className="pl-image-overlay">
+                    <button className="pl-quick-view-btn" onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/product/${product.id}`);
+                    }}>Quick View</button>
+                  </div>
+
+                  <button
+                    className={`pl-wishlist-btn ${wishlist.includes(product.id) ? 'active' : ''}`}
+                    onClick={(e) => toggleWishlist(product.id, e)}
+                  >
+                    <i className={wishlist.includes(product.id) ? "fas fa-heart" : "far fa-heart"}></i>
+                  </button>
+                </div>
+
+                <div className="pl-card-details">
+                  <h3 className="pl-card-title">{product.name}</h3>
+                  <p className="pl-card-desc">{product.shortDescription || product.description}</p>
+
+                  <div className="pl-card-rating">
+                    {[...Array(5)].map((_, i) => (
+                      <i key={i} className={`fas fa-star ${i < Math.floor(product.averageRating || 0) ? 'filled' : 'empty'}`}></i>
+                    ))}
+                  </div>
+
+                  <div className="pl-card-bottom">
+                    <div className="pl-prices">
+                      <span className="pl-price-current">₹{product.price}</span>
+                      {product.discount > 0 && (
+                        <span className="pl-price-old">
+                          ₹{Math.round(product.price / (1 - product.discount / 100))}
+                        </span>
+                      )}
+                    </div>
+
+                    {carted.some(item => item.productId === product.id) ? (
+                      <button className="pl-buy-btn in-cart" onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/cart');
+                      }}>In Cart</button>
+                    ) : (
+                      <button
+                        className="pl-buy-btn"
+                        disabled={!product.stock || product.stock < 1}
+                        style={{ background: (!product.stock || product.stock < 1) ? '#ccc' : '', cursor: (!product.stock || product.stock < 1) ? 'not-allowed' : 'pointer' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (product.stock > 0) {
+                            // Direct checkout for this item
+                            navigate(`/checkout/${product.id}`);
+                          }
+                        }}
+                      >
+                        {(!product.stock || product.stock < 1) ? 'Out of Stock' : 'Buy Now'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="pl-no-products">
+              <h3>No products found</h3>
+              <p>Try adjusting your filters.</p>
+              <button className="pl-buy-btn" onClick={() => {
+                setSelectedCategory('');
+                setPriceRange([0, 100000]);
+                setSelectedBrands([]);
+                fetchProducts();
+              }}>Reset Filters</button>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );

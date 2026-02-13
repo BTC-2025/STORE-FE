@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaSignOutAlt, 
-  FaUsers, 
-  FaBox, 
-  FaShoppingCart, 
-  FaChartLine, 
+import {
+  FaSignOutAlt,
+  FaUsers,
+  FaBox,
+  FaShoppingCart,
+  FaChartLine,
   FaBell,
   FaSearch,
   FaCog,
@@ -22,7 +22,8 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaUserTie,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaChevronRight
 } from 'react-icons/fa';
 import './Dashboard.css';
 
@@ -46,7 +47,7 @@ const Dashboard = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentView, setCurrentView] = useState('dashboard');
-  
+
   // User Management State
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -93,6 +94,11 @@ const Dashboard = ({ onLogout }) => {
   const [updatePriority, setUpdatePriority] = useState('Medium');
   const [updateResolutionNote, setUpdateResolutionNote] = useState('');
 
+  // Orders Management State
+  const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [orderSearchTerm, setOrderSearchTerm] = useState('');
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -106,6 +112,8 @@ const Dashboard = ({ onLogout }) => {
       fetchSellers();
     } else if (currentView === 'complaints') {
       fetchComplaints();
+    } else if (currentView === 'orders') {
+      fetchOrders();
     }
   }, [currentView]);
 
@@ -124,6 +132,10 @@ const Dashboard = ({ onLogout }) => {
   useEffect(() => {
     filterComplaints();
   }, [complaints, complaintSearchTerm, complaintStatusFilter, complaintPriorityFilter]);
+
+  useEffect(() => {
+    filterOrders();
+  }, [orders, orderSearchTerm]);
 
   const fetchDashboardData = async () => {
     try {
@@ -179,7 +191,7 @@ const Dashboard = ({ onLogout }) => {
       }
 
       const data = await response.json();
-      
+
       if (data && data.users) {
         setUsers(data.users);
         setFilteredUsers(data.users);
@@ -207,7 +219,7 @@ const Dashboard = ({ onLogout }) => {
       }
 
       const data = await response.json();
-      
+
       if (data && Array.isArray(data)) {
         setProducts(data);
         setFilteredProducts(data);
@@ -235,11 +247,11 @@ const Dashboard = ({ onLogout }) => {
       }
 
       const data = await response.json();
-      
+
       if (data && data.data) {
         const approvedSellers = data.data.filter(seller => seller.isActive);
         const sellerRequests = data.data.filter(seller => !seller.isActive);
-        
+
         setSellers(approvedSellers);
         setFilteredSellers(approvedSellers);
         setSellerRequests(sellerRequests);
@@ -289,7 +301,7 @@ const Dashboard = ({ onLogout }) => {
       }
 
       const data = await response.json();
-      
+
       if (data && data.data) {
         setComplaints(data.data);
         setFilteredComplaints(data.data);
@@ -301,9 +313,37 @@ const Dashboard = ({ onLogout }) => {
     }
   };
 
+  const fetchOrders = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/order/orders`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data && data.orders) {
+        setOrders(data.orders);
+        setFilteredOrders(data.orders);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (err) {
+      setError('Failed to fetch orders. Please try again.');
+    }
+  };
+
   const updateComplaintStatus = async (complaintId, updateData) => {
     setComplaintActionLoading(prev => ({ ...prev, [complaintId]: true }));
-    
+
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/complaint/update/status/${complaintId}`, {
@@ -332,7 +372,7 @@ const Dashboard = ({ onLogout }) => {
 
   const handleBlockSeller = async (sellerId) => {
     setSellerActionLoading(prev => ({ ...prev, [sellerId]: true }));
-    
+
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(
@@ -366,7 +406,7 @@ const Dashboard = ({ onLogout }) => {
 
   const handleUnblockSeller = async (sellerId) => {
     setSellerActionLoading(prev => ({ ...prev, [sellerId]: true }));
-    
+
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/${sellerId}/block`, {
@@ -379,8 +419,8 @@ const Dashboard = ({ onLogout }) => {
       });
 
       if (response.ok) {
-        setSellers(prevSellers => 
-          prevSellers.map(seller => 
+        setSellers(prevSellers =>
+          prevSellers.map(seller =>
             seller.id === sellerId ? { ...seller, isBlocked: false } : seller
           )
         );
@@ -397,7 +437,7 @@ const Dashboard = ({ onLogout }) => {
 
   const handleRemoveSeller = async (sellerId) => {
     setSellerActionLoading(prev => ({ ...prev, [sellerId]: true }));
-    
+
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/seller/delete/${sellerId}`, {
@@ -475,12 +515,12 @@ const Dashboard = ({ onLogout }) => {
     }
 
     const term = userSearchTerm.toLowerCase();
-    const filtered = users.filter(user => 
+    const filtered = users.filter(user =>
       user.name.toLowerCase().includes(term) ||
       user.email.toLowerCase().includes(term) ||
       user.phoneNumber.includes(term)
     );
-    
+
     setFilteredUsers(filtered);
   };
 
@@ -491,13 +531,13 @@ const Dashboard = ({ onLogout }) => {
     }
 
     const term = productSearchTerm.toLowerCase();
-    const filtered = products.filter(product => 
+    const filtered = products.filter(product =>
       product.name.toLowerCase().includes(term) ||
       product.category.toLowerCase().includes(term) ||
       product.subcategory.toLowerCase().includes(term) ||
       product.sku.toLowerCase().includes(term)
     );
-    
+
     setFilteredProducts(filtered);
   };
 
@@ -508,13 +548,13 @@ const Dashboard = ({ onLogout }) => {
     }
 
     const term = sellerSearchTerm.toLowerCase();
-    const filtered = sellers.filter(seller => 
+    const filtered = sellers.filter(seller =>
       seller.name.toLowerCase().includes(term) ||
       seller.email.toLowerCase().includes(term) ||
       seller.businessName.toLowerCase().includes(term) ||
       seller.businessType.toLowerCase().includes(term)
     );
-    
+
     setFilteredSellers(filtered);
   };
 
@@ -523,7 +563,7 @@ const Dashboard = ({ onLogout }) => {
 
     if (complaintSearchTerm.trim()) {
       const term = complaintSearchTerm.toLowerCase();
-      filtered = filtered.filter(complaint => 
+      filtered = filtered.filter(complaint =>
         complaint.complaintType.toLowerCase().includes(term) ||
         complaint.description.toLowerCase().includes(term) ||
         (complaint.raisedByUser && complaint.raisedByUser.name.toLowerCase().includes(term)) ||
@@ -544,6 +584,22 @@ const Dashboard = ({ onLogout }) => {
     setFilteredComplaints(filtered);
   };
 
+  const filterOrders = () => {
+    if (!orderSearchTerm.trim()) {
+      setFilteredOrders(orders);
+      return;
+    }
+
+    const term = orderSearchTerm.toLowerCase();
+    const filtered = orders.filter(order =>
+      order.id.toString().includes(term) ||
+      (order.user && order.user.name.toLowerCase().includes(term)) ||
+      (order.user && order.user.email.toLowerCase().includes(term))
+    );
+
+    setFilteredOrders(filtered);
+  };
+
   const handleUserSearch = (e) => {
     setUserSearchTerm(e.target.value);
   };
@@ -560,6 +616,10 @@ const Dashboard = ({ onLogout }) => {
     setComplaintSearchTerm(e.target.value);
   };
 
+  const handleOrderSearch = (e) => {
+    setOrderSearchTerm(e.target.value);
+  };
+
   const handleStatusFilterChange = (e) => {
     setComplaintStatusFilter(e.target.value);
   };
@@ -570,7 +630,7 @@ const Dashboard = ({ onLogout }) => {
 
   const handleBlockUser = async (userId) => {
     setUserActionLoading(prev => ({ ...prev, [userId]: true }));
-    
+
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/block/userid/${userId}`, {
@@ -582,8 +642,8 @@ const Dashboard = ({ onLogout }) => {
       });
 
       if (response.ok) {
-        setUsers(prevUsers => 
-          prevUsers.map(user => 
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
             user.id === userId ? { ...user, isBlocked: true } : user
           )
         );
@@ -600,7 +660,7 @@ const Dashboard = ({ onLogout }) => {
 
   const handleUnblockUser = async (userId) => {
     setUserActionLoading(prev => ({ ...prev, [userId]: true }));
-    
+
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/unblock/userid/${userId}`, {
@@ -612,8 +672,8 @@ const Dashboard = ({ onLogout }) => {
       });
 
       if (response.ok) {
-        setUsers(prevUsers => 
-          prevUsers.map(user => 
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
             user.id === userId ? { ...user, isBlocked: false } : user
           )
         );
@@ -630,7 +690,7 @@ const Dashboard = ({ onLogout }) => {
 
   const handleDeleteProduct = async (productId) => {
     setProductActionLoading(prev => ({ ...prev, [productId]: true }));
-    
+
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/product/productid/${productId}`, {
@@ -674,10 +734,10 @@ const Dashboard = ({ onLogout }) => {
 
   const handleRemoveUser = async () => {
     if (!selectedUser) return;
-    
+
     setUserActionLoading(prev => ({ ...prev, [selectedUser.id]: true }));
     setShowUserConfirmDialog(false);
-    
+
     try {
       await new Promise(resolve => setTimeout(resolve, 800));
       setUsers(prevUsers => prevUsers.filter(user => user.id !== selectedUser.id));
@@ -722,7 +782,7 @@ const Dashboard = ({ onLogout }) => {
       resolvedBy: updateStatus === 'Resolved' ? adminId : null,
       resolutionNote: updateResolutionNote
     };
-    
+
     updateComplaintStatus(selectedComplaint.id, updateData);
   };
 
@@ -757,9 +817,6 @@ const Dashboard = ({ onLogout }) => {
         <h3 className="stat-title">{title}</h3>
         <p className="stat-value">{value}</p>
       </div>
-      <div className="stat-footer">
-        <span className="view-details">View details →</span>
-      </div>
     </div>
   );
 
@@ -783,6 +840,11 @@ const Dashboard = ({ onLogout }) => {
     setActiveTab('complaints');
   };
 
+  const switchToOrderManagement = () => {
+    setCurrentView('orders');
+    setActiveTab('orders');
+  };
+
   const switchToDashboard = () => {
     setCurrentView('dashboard');
     setActiveTab('overview');
@@ -800,17 +862,11 @@ const Dashboard = ({ onLogout }) => {
   return (
     <div className="advanced-dashboard-container">
       {/* Sidebar */}
-      <div className={`advanced-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+      <aside className={`advanced-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">
           <h2 className="sidebar-logo">AdminPanel</h2>
-          <button 
-            className="sidebar-toggle"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            ≡
-          </button>
         </div>
-        
+
         <nav className="sidebar-nav">
           <ul>
             <li className={activeTab === 'overview' ? 'active' : ''}>
@@ -837,45 +893,49 @@ const Dashboard = ({ onLogout }) => {
                 <span className="nav-text">Sellers</span>
               </a>
             </li>
+            <li className={activeTab === 'orders' ? 'active' : ''}>
+              <a href="#orders" onClick={() => { setActiveTab('orders'); switchToOrderManagement(); }}>
+                <FaShoppingCart className="nav-icon" />
+                <span className="nav-text">Orders</span>
+              </a>
+            </li>
             <li className={activeTab === 'complaints' ? 'active' : ''}>
               <a href="#complaints" onClick={() => { setActiveTab('complaints'); switchToComplaintsManagement(); }}>
                 <FaExclamationTriangle className="nav-icon" />
                 <span className="nav-text">Complaints</span>
               </a>
             </li>
-            <li className={activeTab === 'orders' ? 'active' : ''}>
-              <a href="#orders" onClick={() => setActiveTab('orders')}>
-                <FaShoppingCart className="nav-icon" />
-                <span className="nav-text">Orders</span>
-              </a>
-            </li>
           </ul>
         </nav>
-        
+
         <div className="sidebar-footer">
           <button className="sidebar-logout" onClick={onLogout}>
             <FaSignOutAlt className="nav-icon" />
             <span className="nav-text">Logout</span>
           </button>
         </div>
-      </div>
+      </aside>
 
       {/* Main Content */}
-      <div className="advanced-main-content">
+      <main className="advanced-main-content">
         {/* Header */}
         <header className="advanced-header">
+          <button
+            className="sidebar-toggle"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            {sidebarOpen ? '≡' : '≡'}
+          </button>
+
           <div className="header-search">
             <FaSearch className="search-icon" />
-            <input type="text" placeholder="Search..." className="search-input" />
+            <input type="text" placeholder="Search global..." className="search-input" />
           </div>
-          
+
           <div className="header-actions">
             <button className="header-btn notification-btn">
               <FaBell />
               <span className="notification-badge">3</span>
-            </button>
-            <button className="header-btn settings-btn">
-              <FaCog />
             </button>
             <div className="user-profile">
               <FaUserCircle className="user-avatar" />
@@ -888,7 +948,7 @@ const Dashboard = ({ onLogout }) => {
         {currentView === 'dashboard' ? (
           <div className="dashboard-content">
             <div className="content-header">
-              <h1 className="page-title">Dashboard Overview</h1>
+              <h1 className="page-title">Overview</h1>
               <p className="page-subtitle">Welcome back! Here's what's happening with your store today.</p>
             </div>
 
@@ -901,224 +961,133 @@ const Dashboard = ({ onLogout }) => {
 
             {/* Stats Grid */}
             <div className="stats-grid">
-              <StatCard 
-                title="Total Users" 
-                value={dashboardData.totalUsers} 
-                icon={<FaUsers />} 
+              <StatCard
+                title="Total Users"
+                value={dashboardData.totalUsers}
+                icon={<FaUsers />}
                 growth={dashboardData.growth?.users || 0}
                 color="blue"
                 onClick={switchToUserManagement}
               />
-              <StatCard 
-                title="Total Products" 
-                value={dashboardData.totalProducts} 
-                icon={<FaBox />} 
+              <StatCard
+                title="Total Products"
+                value={dashboardData.totalProducts}
+                icon={<FaBox />}
                 growth={dashboardData.growth?.products || 0}
                 color="green"
                 onClick={switchToProductManagement}
               />
-              <StatCard 
-                title="Total Orders" 
-                value={dashboardData.totalOrders} 
-                icon={<FaShoppingCart />} 
+              <StatCard
+                title="Total Orders"
+                value={dashboardData.totalOrders}
+                icon={<FaShoppingCart />}
                 growth={dashboardData.growth?.orders || 0}
                 color="purple"
               />
-              <StatCard 
-                title="Total Sellers" 
-                value={dashboardData.totalSellers} 
-                icon={<FaStore />} 
+              <StatCard
+                title="Total Sellers"
+                value={dashboardData.totalSellers}
+                icon={<FaStore />}
                 growth={dashboardData.growth?.sellers || 0}
                 color="orange"
                 onClick={switchToSellerManagement}
               />
             </div>
-
-            {/* Additional Dashboard Sections */}
-            <div className="dashboard-sections">
-              <div className="section-card">
-                <h3>Recent Activity</h3>
-                <div className="activity-list">
-                  {dashboardData.recentActivity && dashboardData.recentActivity.length > 0 ? (
-                    dashboardData.recentActivity.map((activity, index) => (
-                      <div key={index} className="activity-item">
-                        <div className="activity-icon">
-                          {activity.type === 'user' && <FaUsers />}
-                          {activity.type === 'order' && <FaShoppingCart />}
-                          {activity.type === 'product' && <FaBox />}
-                          {activity.type === 'seller' && <FaStore />}
-                        </div>
-                        <div className="activity-content">
-                          <p className="activity-text">{activity.text}</p>
-                          <span className="activity-time">{activity.time}</span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="no-activity">No recent activity</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="section-card">
-                <h3>Quick Actions</h3>
-                <div className="quick-actions-grid">
-                  <button className="action-btn" onClick={switchToUserManagement}>
-                    <FaUsers className="action-icon" />
-                    <span>Manage Users</span>
-                  </button>
-                  <button className="action-btn" onClick={switchToProductManagement}>
-                    <FaBox className="action-icon" />
-                    <span>Manage Products</span>
-                  </button>
-                  <button className="action-btn" onClick={switchToSellerManagement}>
-                    <FaStore className="action-icon" />
-                    <span>Manage Sellers</span>
-                  </button>
-                  <button className="action-btn" onClick={switchToComplaintsManagement}>
-                    <FaExclamationTriangle className="action-icon" />
-                    <span>Manage Complaints</span>
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         ) : currentView === 'users' ? (
           // User Management View
           <div className="user-management-view">
-            <div className="user-management-header">
-              <button className="back-button" onClick={switchToDashboard}>
-                <FaArrowLeft /> Back to Dashboard
-              </button>
-              <h1 className="page-title">
-                <FaUsers className="title-icon" /> User Management
-              </h1>
-              <p className="page-subtitle">Manage all registered users</p>
-            </div>
-
-            {/* Search Bar */}
-            <div className="search-container">
-              <div className="search-input-wrapper">
-                <FaSearch className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Search users by name, email, or phone..."
-                  value={userSearchTerm}
-                  onChange={handleUserSearch}
-                  className="search-input"
-                />
+            <div className="management-header">
+              <div>
+                <button className="back-button" onClick={switchToDashboard}>
+                  <FaArrowLeft /> Back
+                </button>
+                <h1 className="page-title" style={{ marginTop: '1rem' }}>User Management</h1>
               </div>
-              <div className="users-count">
-                {filteredUsers.length} {filteredUsers.length === 1 ? 'user' : 'users'} found
-              </div>
-            </div>
-
-            {error && (
-              <div className="error-message">
-                <span>{error}</span>
-                <button onClick={() => setError('')}>×</button>
-              </div>
-            )}
-
-            {/* Users Table */}
-            <div className="users-table-container">
-              {filteredUsers.length === 0 ? (
-                <div className="no-users">
-                  {userSearchTerm ? 'No users match your search' : 'No users found'}
+              <div className="header-search" style={{ width: 'auto' }}>
+                <div className="search-input-wrapper" style={{ position: 'relative' }}>
+                  <FaSearch className="search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={userSearchTerm}
+                    onChange={handleUserSearch}
+                    className="search-input"
+                  />
                 </div>
+              </div>
+            </div>
+
+            {/* Users List */}
+            <div className="users-grid">
+              {filteredUsers.length === 0 ? (
+                <div className="no-users">No users found</div>
               ) : (
-                <div className="users-grid">
-                  {filteredUsers.map(user => (
-                    <div key={user.id} className={`user-card ${user.isBlocked ? 'blocked' : ''}`}>
-                      <div className="user-header">
-                        <div className="user-avatar">
-                          {user.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="user-info">
-                          <h3 className="user-name">{user.name}</h3>
-                          <p className="user-email">{user.email}</p>
-                        </div>
-                        <div className={`user-status ${user.isBlocked ? 'blocked' : 'active'}`}>
-                          {user.isBlocked ? 'Blocked' : 'Active'}
-                        </div>
+                filteredUsers.map(user => (
+                  <div key={user.id} className="user-card">
+                    <div className="info-group">
+                      <div className="card-avatar">
+                        {user.name.charAt(0).toUpperCase()}
                       </div>
-                      
-                      <div className="user-details">
-                        <div className="user-detail">
-                          <span className="detail-label">Phone:</span>
-                          <span className="detail-value">{user.phoneNumber}</span>
-                        </div>
-                        <div className="user-detail">
-                          <span className="detail-label">Registered:</span>
-                          <span className="detail-value">{formatDate(user.createdAt)}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="user-actions">
-                        {user.isBlocked ? (
-                          <button
-                            className="action-btn unblock-btn"
-                            onClick={() => handleUnblockUser(user.id)}
-                            disabled={userActionLoading[user.id]}
-                          >
-                            {userActionLoading[user.id] ? (
-                              <div className="button-spinner"></div>
-                            ) : (
-                              <>
-                                <FaUserCheck /> Unblock
-                              </>
-                            )}
-                          </button>
-                        ) : (
-                          <button
-                            className="action-btn block-btn"
-                            onClick={() => confirmUserAction(user, 'block')}
-                            disabled={userActionLoading[user.id]}
-                          >
-                            {userActionLoading[user.id] ? (
-                              <div className="button-spinner"></div>
-                            ) : (
-                              <>
-                                <FaUserSlash /> Block
-                              </>
-                            )}
-                          </button>
-                        )}
-                        
-                        <button
-                          className="action-btn remove-btn"
-                          onClick={() => confirmUserAction(user, 'remove')}
-                          disabled={userActionLoading[user.id]}
-                        >
-                          {userActionLoading[user.id] ? (
-                            <div className="button-spinner"></div>
-                          ) : (
-                            <>
-                              <FaTrash /> Remove
-                            </>
-                          )}
-                        </button>
+                      <div className="card-details">
+                        <span className="card-title">{user.name}</span>
+                        <span className="card-subtitle">{user.email}</span>
+                        <span className="card-subtitle">{user.phoneNumber}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
+
+                    <div className={`status-badge ${user.isBlocked ? 'blocked' : 'active'}`}>
+                      {user.isBlocked ? 'Blocked' : 'Active'}
+                    </div>
+
+                    <div className="action-buttons">
+                      {user.isBlocked ? (
+                        <button
+                          className="btn-icon"
+                          onClick={() => handleUnblockUser(user.id)}
+                          title="Unblock User"
+                        >
+                          <FaUserCheck />
+                        </button>
+                      ) : (
+                        <button
+                          className="btn-icon danger"
+                          onClick={() => confirmUserAction(user, 'block')}
+                          title="Block User"
+                        >
+                          <FaUserSlash />
+                        </button>
+                      )}
+
+                      <button
+                        className="btn-icon danger"
+                        onClick={() => confirmUserAction(user, 'remove')}
+                        title="Remove User"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
 
-            {/* Confirmation Dialog */}
+            {/* User Confirmation Dialog */}
             {showUserConfirmDialog && (
               <div className="modal-overlay">
                 <div className="confirmation-dialog">
-                  <h3>
-                    {userActionType === 'block' ? 'Block User' : 'Remove User'}
-                  </h3>
-                  <p>
-                    {userActionType === 'block' 
-                      ? `Are you sure you want to block ${selectedUser.name}? They will not be able to access their account.`
-                      : `Are you sure you want to permanently remove ${selectedUser.name}? This action cannot be undone.`
-                    }
-                  </p>
-                  <div className="dialog-actions">
+                  <div className="modal-header">
+                    <h3>{userActionType === 'block' ? 'Block User' : 'Remove User'}</h3>
+                  </div>
+                  <div className="modals-body">
+                    <p>
+                      {userActionType === 'block'
+                        ? `Are you sure you want to block ${selectedUser.name}? They will not be able to access their account.`
+                        : `Are you sure you want to permanently remove ${selectedUser.name}? This action cannot be undone.`
+                      }
+                    </p>
+                  </div>
+                  <div className="modal-actions">
                     <button
                       className="dialog-btn cancel-btn"
                       onClick={() => setShowUserConfirmDialog(false)}
@@ -1127,12 +1096,12 @@ const Dashboard = ({ onLogout }) => {
                     </button>
                     <button
                       className={`dialog-btn ${userActionType === 'block' ? 'confirm-block-btn' : 'confirm-remove-btn'}`}
-                      onClick={userActionType === 'block' ? 
-                        () => handleBlockUser(selectedUser.id) : 
+                      onClick={userActionType === 'block' ?
+                        () => handleBlockUser(selectedUser.id) :
                         handleRemoveUser
                       }
                     >
-                      {userActionType === 'block' ? 'Block User' : 'Remove User'}
+                      Confirm
                     </button>
                   </div>
                 </div>
@@ -1142,135 +1111,79 @@ const Dashboard = ({ onLogout }) => {
         ) : currentView === 'products' ? (
           // Product Management View
           <div className="product-management-view">
-            <div className="product-management-header">
-              <button className="back-button" onClick={switchToDashboard}>
-                <FaArrowLeft /> Back to Dashboard
-              </button>
-              <h1 className="page-title">
-                <FaBox className="title-icon" /> Product Management
-              </h1>
-              <p className="page-subtitle">Manage all products in your store</p>
-            </div>
-
-            {/* Search Bar */}
-            <div className="search-container">
-              <div className="search-input-wrapper">
-                <FaSearch className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Search products by name, category, or SKU..."
-                  value={productSearchTerm}
-                  onChange={handleProductSearch}
-                  className="search-input"
-                />
+            <div className="management-header">
+              <div>
+                <button className="back-button" onClick={switchToDashboard}>
+                  <FaArrowLeft /> Back
+                </button>
+                <h1 className="page-title" style={{ marginTop: '1rem' }}>Product Management</h1>
               </div>
-              <div className="products-count">
-                {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
-              </div>
-            </div>
-
-            {error && (
-              <div className="error-message">
-                <span>{error}</span>
-                <button onClick={() => setError('')}>×</button>
-              </div>
-            )}
-
-            {/* Products Table */}
-            <div className="products-table-container">
-              {filteredProducts.length === 0 ? (
-                <div className="no-products">
-                  {productSearchTerm ? 'No products match your search' : 'No products found'}
+              <div className="header-search" style={{ width: 'auto' }}>
+                <div className="search-input-wrapper" style={{ position: 'relative' }}>
+                  <FaSearch className="search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={productSearchTerm}
+                    onChange={handleProductSearch}
+                    className="search-input"
+                  />
                 </div>
+              </div>
+            </div>
+
+            <div className="products-grid">
+              {filteredProducts.length === 0 ? (
+                <div className="no-products">No products found</div>
               ) : (
-                <div className="products-grid">
-                  {filteredProducts.map(product => (
-                    <div key={product.id} className="product-card">
-                      <div className="product-images-container">
-                        <img 
-                          src={product.image} 
-                          alt={product.name}
-                          className="product-images"
-                          onError={(e) => {
-                            e.target.src = '';
-                          }}
-                        />
-                        <div className="product-badges">
-                          {product.isFeatured && <span className="badge featured">Featured</span>}
-                          {product.discount > 0 && <span className="badge discount">{product.discount}% OFF</span>}
-                          {!product.isAvailable && <span className="badge unavailable">Out of Stock</span>}
-                        </div>
-                      </div>
-                      
-                      <div className="product-content">
-                        <h3 className="product-name">{product.name}</h3>
-                        <p className="product-description">{product.shortDescription}</p>
-                        
-                        <div className="product-details">
-                          <div className="product-detail">
-                            <span className="detail-label">Price:</span>
-                            <span className="detail-value">{formatPrice(product.price)}</span>
-                          </div>
-                          <div className="product-detail">
-                            <span className="detail-label">Stock:</span>
-                            <span className={`detail-value ${product.stock < 10 ? 'low-stock' : ''}`}>
-                              {product.stock} units
-                            </span>
-                          </div>
-                          <div className="product-detail">
-                            <span className="detail-label">Category:</span>
-                            <span className="detail-value">{product.category} › {product.subcategory}</span>
-                          </div>
-                          <div className="product-detail">
-                            <span className="detail-label">SKU:</span>
-                            <span className="detail-value">{product.sku}</span>
-                          </div>
-                          <div className="product-detail">
-                            <span className="detail-label">Added:</span>
-                            <span className="detail-value">{formatDate(product.createdAt)}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="product-tags">
-                          {product.tagline.map((tag, index) => (
-                            <span key={index} className="product-tag">{tag}</span>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="product-action">
-                        <button className="action-btn edit-btn">
-                          <FaEdit /> Edit
-                        </button>
-                        <button
-                          className="action-btn delete-btn"
-                          onClick={() => confirmProductAction(product, 'delete')}
-                          disabled={productActionLoading[product.id]}
-                        >
-                          {productActionLoading[product.id] ? (
-                            <div className="button-spinner"></div>
-                          ) : (
-                            <>
-                              <FaTrash /> Delete
-                            </>
-                          )}
-                        </button>
+                filteredProducts.map(product => (
+                  <div key={product.id} className="product-card">
+                    <div className="info-group">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="product-thumb"
+                        onError={(e) => { e.target.src = '' }}
+                      />
+                      <div className="card-details">
+                        <span className="card-title">{product.name}</span>
+                        <span className="card-subtitle">SKU: {product.sku}</span>
+                        <span className="card-subtitle">{formatPrice(product.price)} • Stock: {product.stock}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
+
+                    <div className="status-badge" style={{ background: '#f3f4f6', color: '#4b5563' }}>
+                      {product.category}
+                    </div>
+
+                    <div className="action-buttons">
+                      <button className="btn-icon" title="Edit">
+                        <FaEdit />
+                      </button>
+                      <button
+                        className="btn-icon danger"
+                        onClick={() => confirmProductAction(product, 'delete')}
+                        title="Delete"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
 
-            {/* Confirmation Dialog */}
+            {/* Product Confirmation Dialog */}
             {showProductConfirmDialog && (
               <div className="modal-overlay">
                 <div className="confirmation-dialog">
-                  <h3>Delete Product</h3>
-                  <p>
-                    Are you sure you want to delete "{selectedProduct?.name}"? This action cannot be undone.
-                  </p>
-                  <div className="dialog-actions">
+                  <div className="modal-header">
+                    <h3>Delete Product</h3>
+                  </div>
+                  <div className="modals-body">
+                    <p>Are you sure you want to delete "{selectedProduct?.name}"? This action cannot be undone.</p>
+                  </div>
+                  <div className="modal-actions">
                     <button
                       className="dialog-btn cancel-btn"
                       onClick={() => setShowProductConfirmDialog(false)}
@@ -1281,7 +1194,7 @@ const Dashboard = ({ onLogout }) => {
                       className="dialog-btn confirm-delete-btn"
                       onClick={() => handleDeleteProduct(selectedProduct.id)}
                     >
-                      Delete Product
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -1291,733 +1204,354 @@ const Dashboard = ({ onLogout }) => {
         ) : currentView === 'sellers' ? (
           // Seller Management View
           <div className="seller-management-view">
-            <div className="seller-management-header">
-              <button className="back-button" onClick={switchToDashboard}>
-                <FaArrowLeft /> Back to Dashboard
-              </button>
-              <h1 className="page-title">
-                <FaStore className="title-icon" /> Seller Management
-              </h1>
-              <p className="page-subtitle">Manage sellers and review new requests</p>
-            </div>
-
-            {/* Tabs for Seller Management */}
-            <div className="seller-tabs">
-              <button 
-                className={`seller-tab ${!showSellerRequests ? 'active' : ''}`}
-                onClick={() => setShowSellerRequests(false)}
-              >
-                <FaUserTie /> Approved Sellers
-              </button>
-              <button 
-                className={`seller-tab ${showSellerRequests ? 'active' : ''}`}
-                onClick={() => setShowSellerRequests(true)}
-              >
-                <FaBell /> New Requests
-                {sellerRequests.length > 0 && (
-                  <span className="request-badge">{sellerRequests.length}</span>
-                )}
-              </button>
+            <div className="management-header">
+              <div>
+                <button className="back-button" onClick={switchToDashboard}>
+                  <FaArrowLeft /> Back
+                </button>
+                <h1 className="page-title" style={{ marginTop: '1rem' }}>Seller Management</h1>
+              </div>
+              <div className="seller-tabs">
+                {/* Simplified Tabs using Buttons */}
+                <button
+                  style={{ marginRight: '1rem', background: !showSellerRequests ? '#e0e7ff' : 'transparent', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: '600', color: !showSellerRequests ? '#4f46e5' : '#64748b', cursor: 'pointer' }}
+                  onClick={() => setShowSellerRequests(false)}
+                >
+                  <FaUserTie /> Approved Sellers
+                </button>
+                <button
+                  style={{ background: showSellerRequests ? '#e0e7ff' : 'transparent', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: '600', color: showSellerRequests ? '#4f46e5' : '#64748b', cursor: 'pointer' }}
+                  onClick={() => setShowSellerRequests(true)}
+                >
+                  <FaBell /> Requests ({sellerRequests.length})
+                </button>
+              </div>
             </div>
 
             {!showSellerRequests ? (
               <>
-                {/* Search Bar */}
-                <div className="search-container">
-                  <div className="search-input-wrapper">
+                <div className="header-search" style={{ marginBottom: '1rem', padding: 0 }}>
+                  <div className="search-input-wrapper" style={{ position: 'relative' }}>
                     <FaSearch className="search-icon" />
                     <input
                       type="text"
-                      placeholder="Search sellers by name, store, or business type..."
+                      placeholder="Search sellers..."
                       value={sellerSearchTerm}
                       onChange={handleSellerSearch}
                       className="search-input"
                     />
                   </div>
-                  <div className="sellers-count">
-                    {filteredSellers.length} {filteredSellers.length === 1 ? 'seller' : 'sellers'} found
-                  </div>
                 </div>
 
-                {error && (
-                  <div className="error-message">
-                    <span>{error}</span>
-                    <button onClick={() => setError('')}>×</button>
-                  </div>
-                )}
-
-                {/* Sellers Table */}
-                <div className="sellers-table-container">
-                  {filteredSellers.length === 0 ? (
-                    <div className="no-sellers">
-                      {sellerSearchTerm ? 'No sellers match your search' : 'No sellers found'}
-                    </div>
-                  ) : (
-                    <div className="sellers-grid">
-                      {filteredSellers.map(seller => (
-                        <div key={seller.id} className={`seller-card ${seller.isBlocked ? 'blocked' : ''}`}>
-                          <div className="seller-header">
-                            <div className="seller-avatar">
-                              <FaStore />
-                            </div>
-                            <div className="seller-info">
-                              <h3 className="seller-name">{seller.name}</h3>
-                              <p className="seller-email">{seller.email}</p>
-                              <p className="seller-store">{seller.businessName}</p>
-                            </div>
-                            <div className={`seller-status ${seller.isBlocked ? 'blocked' : 'active'}`}>
-                              {seller.isBlocked ? 'Blocked' : 'Active'}
-                            </div>
-                          </div>
-                          
-                          <div className="seller-details">
-                            <div className="seller-detail">
-                              <span className="detail-label">Business:</span>
-                              <span className="detail-value">{seller.businessType}</span>
-                            </div>
-                            <div className="seller-detail">
-                              <span className="detail-label">Phone:</span>
-                              <span className="detail-value">{seller.phone}</span>
-                            </div>
-                            <div className="seller-detail">
-                              <span className="detail-label">KYC Status:</span>
-                              <span className="detail-value">{seller.kycStatus}</span>
-                            </div>
-                            <div className="seller-detail">
-                              <span className="detail-label">Payment Status:</span>
-                              <span className="detail-value">{seller.paymentStatus}</span>
-                            </div>
-                            <div className="seller-detail">
-                              <span className="detail-label">Joined:</span>
-                              <span className="detail-value">{formatDate(seller.createdAt)}</span>
-                            </div>
-                            <div className="seller-detail">
-                              <span className="detail-label">Rating:</span>
-                              <span className="detail-value">{seller.rating} ⭐</span>
-                            </div>
-                          </div>
-                          
-                          <div className="seller-actions">
-                            {seller.isBlocked ? (
-                              <button
-                                className="action-btn unblock-btn"
-                                onClick={() => handleUnblockSeller(seller.id)}
-                                disabled={sellerActionLoading[seller.id]}
-                              >
-                                {sellerActionLoading[seller.id] ? (
-                                  <div className="button-spinner"></div>
-                                ) : (
-                                  <>
-                                    <FaUserCheck /> Unblock
-                                  </>
-                                )}
-                              </button>
-                            ) : (
-                              <button
-                                className="action-btn block-btn"
-                                onClick={() => confirmSellerAction(seller, 'block')}
-                                disabled={sellerActionLoading[seller.id]}
-                              >
-                                {sellerActionLoading[seller.id] ? (
-                                  <div className="button-spinner"></div>
-                                ) : (
-                                  <>
-                                    <FaUserSlash /> Block
-                                  </>
-                                )}
-                              </button>
-                            )}
-                            
-                            <button
-                              className="action-btn remove-btn"
-                              onClick={() => confirmSellerAction(seller, 'remove')}
-                              disabled={sellerActionLoading[seller.id]}
-                            >
-                              {sellerActionLoading[seller.id] ? (
-                                <div className="button-spinner"></div>
-                              ) : (
-                                <>
-                                  <FaTrash /> Remove
-                                </>
-                              )}
-                            </button>
-                          </div>
+                <div className="sellers-grid">
+                  {filteredSellers.map(seller => (
+                    <div key={seller.id} className="seller-card">
+                      <div className="info-group">
+                        <div className="card-avatar" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
+                          <FaStore />
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                        <div className="card-details">
+                          <span className="card-title">{seller.name}</span>
+                          <span className="card-subtitle">{seller.businessName}</span>
+                          <span className="card-subtitle">{seller.email}</span>
+                        </div>
+                      </div>
 
-                {/* Confirmation Dialog */}
-                {showSellerConfirmDialog && (
-                  <div className="modal-overlay">
-                    <div className="confirmation-dialog">
-                      <h3>
-                        {sellerActionType === 'block' ? 'Block Seller' : 'Remove Seller'}
-                      </h3>
-                      <p>
-                        {sellerActionType === 'block' 
-                          ? `Are you sure you want to block ${selectedSeller.name}? They will not be able to access their seller account.`
-                          : `Are you sure you want to permanently remove ${selectedSeller.name}? This action cannot be undone.`
-                        }
-                      </p>
-                      <div className="dialog-actions">
-                        <button
-                          className="dialog-btn cancel-btn"
-                          onClick={() => setShowSellerConfirmDialog(false)}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          className={`dialog-btn ${sellerActionType === 'block' ? 'confirm-block-btn' : 'confirm-remove-btn'}`}
-                          onClick={sellerActionType === 'block' ? 
-                            () => handleBlockSeller(selectedSeller.id) : 
-                            handleRemoveSellerConfirm
-                          }
-                        >
-                          {sellerActionType === 'block' ? 'Block Seller' : 'Remove Seller'}
+                      <div className={`status-badge ${seller.isBlocked ? 'blocked' : 'active'}`}>
+                        {seller.isBlocked ? 'Blocked' : 'Active'}
+                      </div>
+
+                      <div className="action-buttons">
+                        {seller.isBlocked ? (
+                          <button className="btn-icon" onClick={() => handleUnblockSeller(seller.id)}>
+                            <FaUserCheck />
+                          </button>
+                        ) : (
+                          <button className="btn-icon danger" onClick={() => confirmSellerAction(seller, 'block')}>
+                            <FaUserSlash />
+                          </button>
+                        )}
+                        <button className="btn-icon danger" onClick={() => confirmSellerAction(seller, 'remove')}>
+                          <FaTrash />
                         </button>
                       </div>
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </>
             ) : (
-              // Seller Requests View
-              <div className="seller-requests-view">
-                <div className="requests-header">
-                  <h3>New Seller Requests</h3>
-                  <p>Review and approve new seller applications</p>
+              <div className="sellers-grid">
+                {sellerRequests.length === 0 ? <div className="no-requests">No new requests</div> :
+                  sellerRequests.map(request => (
+                    <div key={request.id} className="request-card">
+                      <div className="info-group">
+                        <div className="card-avatar" style={{ background: '#fffbeb', color: '#f59e0b' }}>
+                          <FaUserTie />
+                        </div>
+                        <div className="card-details">
+                          <span className="card-title">{request.name}</span>
+                          <span className="card-subtitle">{request.businessName}</span>
+                          <span className="card-subtitle">Applied: {formatDate(request.createdAt)}</span>
+                        </div>
+                      </div>
+                      <button className="btn-icon" onClick={() => viewRequestDetails(request)} title="View Details">
+                        <FaEye />
+                      </button>
+                    </div>
+                  ))
+                }
+              </div>
+            )}
+
+            {/* Seller Modals (Confirmation & Details) */}
+            {showSellerConfirmDialog && (
+              <div className="modal-overlay">
+                <div className="confirmation-dialog">
+                  <div className="modal-header">
+                    <h3>{sellerActionType === 'block' ? 'Block Seller' : 'Remove Seller'}</h3>
+                  </div>
+                  <div className="modals-body">
+                    <p>Are you sure?</p>
+                  </div>
+                  <div className="modal-actions">
+                    <button className="dialog-btn cancel-btn" onClick={() => setShowSellerConfirmDialog(false)}>Cancel</button>
+                    <button
+                      className="dialog-btn confirm-btn"
+                      onClick={sellerActionType === 'block' ? () => handleBlockSeller(selectedSeller.id) : handleRemoveSellerConfirm}
+                    >
+                      Confirm
+                    </button>
+                  </div>
                 </div>
+              </div>
+            )}
 
-                {sellerRequests.length === 0 ? (
-                  <div className="no-requests">
-                    <FaCheckCircle className="no-requests-icon" />
-                    <p>No pending seller requests</p>
+            {showRequestDetail && sellerDetail && (
+              <div className="modal-overlay">
+                <div className="request-detail-modal">
+                  <div className="modal-header">
+                    <h3>Seller Application</h3>
+                    <button className="modal-close-btn" onClick={() => setShowRequestDetail(false)}><FaTimes /></button>
                   </div>
-                ) : (
-                  <div className="requests-grid">
-                    {sellerRequests.map(request => (
-                      <div key={request.id} className="request-card">
-                        <div className="request-header">
-                          <div className="request-avatar">
-                            <FaUserTie />
-                          </div>
-                          <div className="request-info">
-                            <h4 className="request-name">{request.name}</h4>
-                            <p className="request-email">{request.email}</p>
-                            <p className="request-store">{request.businessName}</p>
-                          </div>
-                          <div className="request-status pending">
-                            Pending
-                          </div>
-                        </div>
-                        
-                        <div className="request-details">
-                          <div className="request-detail">
-                            <span className="detail-label">Business Type:</span>
-                            <span className="detail-value">{request.businessType}</span>
-                          </div>
-                          <div className="request-detail">
-                            <span className="detail-label">Applied:</span>
-                            <span className="detail-value">{formatDate(request.createdAt)}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="request-actions">
-                          <button
-                            className="action-btn view-btn"
-                            onClick={() => viewRequestDetails(request)}
-                          >
-                            <FaEye /> View Details
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Request Detail Modal */}
-                {showRequestDetail && sellerDetail && (
-                  <div className="modal-overlay">
-                    <div className="request-detail-modal">
-                      <div className="modal-header">
-                        <h3>Seller Application Details</h3>
-                        <button 
-                          className="modal-close-btn"
-                          onClick={() => setShowRequestDetail(false)}
-                        >
-                          <FaTimes />
-                        </button>
-                      </div>
-                      
-                      <div className="modal-content">
-                        <div className="applicant-info">
-                          <h4>Applicant Information</h4>
-                          <div className="info-grid">
-                            <div className="info-item">
-                              <span className="info-label">Full Name:</span>
-                              <span className="info-value">{sellerDetail.name}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">Email:</span>
-                              <span className="info-value">{sellerDetail.email}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">Phone:</span>
-                              <span className="info-value">{sellerDetail.phone}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">Store Name:</span>
-                              <span className="info-value">{sellerDetail.businessName}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">Business Type:</span>
-                              <span className="info-value">{sellerDetail.businessType}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">GST Number:</span>
-                              <span className="info-value">{sellerDetail.gstNumber || 'Not provided'}</span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">PAN Number:</span>
-                              <span className="info-value">{sellerDetail.panNumber || 'Not provided'}</span>
-                            </div>
-                            <div className="info-item full-width">
-                              <span className="info-label">Address:</span>
-                              <span className="info-value">
-                                {sellerDetail.address ? 
-                                  `${sellerDetail.address}, ${sellerDetail.city}, ${sellerDetail.state}, ${sellerDetail.country} - ${sellerDetail.pincode}` : 
-                                  'Not provided'
-                                }
-                              </span>
-                            </div>
-                            <div className="info-item">
-                              <span className="info-label">Applied On:</span>
-                              <span className="info-value">{formatDate(sellerDetail.createdAt)}</span>
-                            </div>
-                            {sellerDetail.documents && sellerDetail.documents.length > 0 && (
-                              <div className="info-item full-width">
-                                <span className="info-label">Documents:</span>
-                                <div className="document-list">
-                                  {sellerDetail.documents.map((doc, index) => (
-                                    <a key={index} href={doc.url} className="document-link" target="_blank" rel="noopener noreferrer">
-                                      {doc.name || `Document ${index + 1}`}
-                                    </a>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="modal-actions">
-                        <button
-                          className="dialog-btn reject-btn"
-                          onClick={() => handleRejectRequest(sellerDetail.id)}
-                        >
-                          <FaTimesCircle /> Reject
-                        </button>
-                        <button
-                          className="dialog-btn accept-btn"
-                          onClick={() => handleAcceptRequest(sellerDetail.id)}
-                        >
-                          <FaCheckCircle /> Approve
-                        </button>
-                      </div>
+                  <div className="modals-body">
+                    <div className="detail-grid">
+                      <div className="detail-item"><span className="detail-label">Name:</span> <strong>{sellerDetail.name}</strong></div>
+                      <div className="detail-item"><span className="detail-label">Email:</span> <strong>{sellerDetail.email}</strong></div>
+                      <div className="detail-item"><span className="detail-label">Store:</span> <strong>{sellerDetail.businessName}</strong></div>
+                      <div className="detail-item"><span className="detail-label">Type:</span> <strong>{sellerDetail.businessType}</strong></div>
                     </div>
                   </div>
-                )}
+                  <div className="modal-actions">
+                    <button className="dialog-btn reject-btn" onClick={() => handleRejectRequest(sellerDetail.id)}>Reject</button>
+                    <button className="dialog-btn accept-btn" onClick={() => handleAcceptRequest(sellerDetail.id)}>Approve</button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
-        ) : (
+        ) : currentView === 'complaints' ? (
           // Complaints Management View
           <div className="complaints-management-view">
-            <div className="complaints-management-header">
-              <button className="back-button" onClick={switchToDashboard}>
-                <FaArrowLeft /> Back to Dashboard
-              </button>
-              <h1 className="page-title">
-                <FaExclamationTriangle className="title-icon" /> Complaints Management
-              </h1>
-              <p className="page-subtitle">Manage and resolve customer complaints</p>
-            </div>
-
-            {/* Filters and Search */}
-            <div className="complaints-filters">
-              <div className="search-container">
-                <div className="search-input-wrapper">
+            <div className="management-header">
+              <div>
+                <button className="back-button" onClick={switchToDashboard}>
+                  <FaArrowLeft /> Back
+                </button>
+                <h1 className="page-title" style={{ marginTop: '1rem' }}>Complaints</h1>
+              </div>
+              <div className="header-search" style={{ width: 'auto' }}>
+                <div className="search-input-wrapper" style={{ position: 'relative' }}>
                   <FaSearch className="search-icon" />
                   <input
                     type="text"
-                    placeholder="Search complaints by type, description, or involved parties..."
+                    placeholder="Search complaints..."
                     value={complaintSearchTerm}
                     onChange={handleComplaintSearch}
                     className="search-input"
                   />
                 </div>
               </div>
-
-              <div className="filter-controls">
-                <div className="filter-group">
-                  <label htmlFor="status-filter">Status:</label>
-                  <select 
-                    id="status-filter" 
-                    value={complaintStatusFilter} 
-                    onChange={handleStatusFilterChange}
-                  >
-                    <option value="all">All Statuses</option>
-                    <option value="Pending">Pending</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                    <option value="Rejected">Rejected</option>
-                  </select>
-                </div>
-
-                <div className="filter-group">
-                  <label htmlFor="priority-filter">Priority:</label>
-                  <select 
-                    id="priority-filter" 
-                    value={complaintPriorityFilter} 
-                    onChange={handlePriorityFilterChange}
-                  >
-                    <option value="all">All Priorities</option>
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="complaints-count">
-                {filteredComplaints.length} {filteredComplaints.length === 1 ? 'complaint' : 'complaints'} found
-              </div>
             </div>
 
-            {error && (
-              <div className="error-message">
-                <span>{error}</span>
-                <button onClick={() => setError('')}>×</button>
-              </div>
-            )}
-
-            {/* Complaints Table */}
-            <div className="complaints-table-container">
-              {filteredComplaints.length === 0 ? (
-                <div className="no-complaints">
-                  {complaintSearchTerm || complaintStatusFilter !== 'all' || complaintPriorityFilter !== 'all' 
-                    ? 'No complaints match your filters' 
-                    : 'No complaints found'
-                  }
-                </div>
-              ) : (
-                <div className="complaints-grid">
-                  {filteredComplaints.map(complaint => (
-                    <div key={complaint.id} className={`complaint-card ${complaint.status.toLowerCase().replace(' ', '-')}`}>
-                      <div className="complaint-header">
-                        <div className="complaint-type-badge">
-                          {complaint.complaintType}
-                        </div>
-                        <div className={`complaint-status ${complaint.status.toLowerCase().replace(' ', '-')}`}>
-                          {complaint.status}
-                        </div>
-                        <div className={`complaint-priority ${complaint.priority.toLowerCase()}`}>
-                          {complaint.priority}
-                        </div>
-                      </div>
-                      
-                      <div className="complaint-content">
-                        <p className="complaint-description">{complaint.description}</p>
-                        
-                        <div className="complaint-parties">
-                          <div className="party-info">
-                            <span className="party-label">Raised By:</span>
-                            <span className="party-value">
-                              {complaint.raisedByUser 
-                                ? `${complaint.raisedByUser.name} (User)` 
-                                : complaint.raisedBySeller 
-                                  ? `${complaint.raisedBySeller.name} (Seller)` 
-                                  : 'Unknown'
-                              }
-                            </span>
-                          </div>
-                          
-                          <div className="party-info">
-                            <span className="party-label">Against:</span>
-                            <span className="party-value">
-                              {complaint.againstUser 
-                                ? `${complaint.againstUser.name} (User)` 
-                                : complaint.againstSeller 
-                                  ? `${complaint.againstSeller.name} (Seller)` 
-                                  : 'Not specified'
-                              }
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="complaint-meta">
-                          <div className="meta-info">
-                            <span className="meta-label">Order ID:</span>
-                            <span className="meta-value">{complaint.orderId || 'N/A'}</span>
-                          </div>
-                          <div className="meta-info">
-                            <span className="meta-label">Product ID:</span>
-                            <span className="meta-value">{complaint.productId || 'N/A'}</span>
-                          </div>
-                          <div className="meta-info">
-                            <span className="meta-label">Created:</span>
-                            <span className="meta-value">{formatDate(complaint.createdAt)}</span>
-                          </div>
-                          {complaint.resolvedByAdmin && (
-                            <div className="meta-info">
-                              <span className="meta-label">Resolved By:</span>
-                              <span className="meta-value">{complaint.resolvedByAdmin.fullName}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="complaint-actions">
-                        <button
-                          className="action-btn view-btn"
-                          onClick={() => viewComplaintDetails(complaint)}
-                        >
-                          <FaEye /> View Details
-                        </button>
-                        <button
-                          className="action-btn edit-btn"
-                          onClick={() => openUpdateComplaintModal(complaint)}
-                        >
-                          <FaEdit /> Update
-                        </button>
-                      </div>
+            <div className="complaints-grid">
+              {filteredComplaints.map(complaint => (
+                <div key={complaint.id} className="complaint-card">
+                  <div className="info-group">
+                    <div className="card-avatar" style={{ background: '#fee2e2', color: '#ef4444' }}>
+                      <FaExclamationTriangle />
                     </div>
-                  ))}
+                    <div className="card-details">
+                      <span className="card-title">{complaint.complaintType}</span>
+                      <span className="card-subtitle">ID: #{complaint.id} • {formatDate(complaint.createdAt)}</span>
+                      <span className="card-subtitle" style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {complaint.description}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <span className={`status-badge ${complaint.status.toLowerCase().replace(' ', '-')}`}>
+                      {complaint.status}
+                    </span>
+                    <span className={`status-badge ${complaint.priority.toLowerCase()}`} style={{ fontSize: '0.65rem', opacity: 0.8 }}>
+                      {complaint.priority}
+                    </span>
+                  </div>
+
+                  <div className="action-buttons">
+                    <button className="btn-icon" onClick={() => viewComplaintDetails(complaint)}>
+                      <FaEye />
+                    </button>
+                    <button className="btn-icon" onClick={() => openUpdateComplaintModal(complaint)}>
+                      <FaEdit />
+                    </button>
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
 
-            {/* Complaint Detail Modal */}
+            {/* Complaint Modals */}
             {showComplaintDetail && selectedComplaint && (
               <div className="modal-overlay">
                 <div className="complaint-detail-modal">
                   <div className="modal-header">
-                    <h3>Complaint Details</h3>
-                    <button 
-                      className="modal-close-btn"
-                      onClick={() => setShowComplaintDetail(false)}
-                    >
-                      <FaTimes />
-                    </button>
+                    <h3>Complaint Details #{selectedComplaint.id}</h3>
+                    <button className="modal-close-btn" onClick={() => setShowComplaintDetail(false)}><FaTimes /></button>
                   </div>
-                  
-                  <div className="modals-content px-2">
-                    <div className="complaint-detail-section">
-                      <h4>Basic Information</h4>
-                      <div className="detail-grid">
-                        <div className="detail-item">
-                          <span className="detail-label">ID:</span>
-                          <span className="detail-value">{selectedComplaint.id}</span>
-                        </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Type:</span>
-                          <span className="detail-value">{selectedComplaint.complaintType}</span>
-                        </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Status:</span>
-                          <span className={`detail-value status ${selectedComplaint.status.toLowerCase().replace(' ', '-')}`}>
-                            {selectedComplaint.status}
-                          </span>
-                        </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Priority:</span>
-                          <span className={`detail-value priority ${selectedComplaint.priority.toLowerCase()}`}>
-                            {selectedComplaint.priority}
-                          </span>
-                        </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Created:</span>
-                          <span className="detail-value">{formatDate(selectedComplaint.createdAt)}</span>
-                        </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Last Updated:</span>
-                          <span className="detail-value">{formatDate(selectedComplaint.updatedAt)}</span>
-                        </div>
-                      </div>
+                  <div className="modals-body">
+                    <p><strong>Description:</strong> {selectedComplaint.description}</p>
+                    <hr style={{ margin: '1rem 0', border: 'none', borderTop: '1px solid #e5e7eb' }} />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div><span className="detail-label">Status:</span> <strong>{selectedComplaint.status}</strong></div>
+                      <div><span className="detail-label">Priority:</span> <strong>{selectedComplaint.priority}</strong></div>
+                      <div><span className="detail-label">Type:</span> <strong>{selectedComplaint.complaintType}</strong></div>
                     </div>
-                    
-                    <div className="complaint-detail-section">
-                      <h4>Parties Involved</h4>
-                      <div className="detail-grid">
-                        <div className="detail-item">
-                          <span className="detail-label">Raised By:</span>
-                          <span className="detail-value">
-                            {selectedComplaint.raisedByUser 
-                              ? `${selectedComplaint.raisedByUser.name} (User - ${selectedComplaint.raisedByUser.email})` 
-                              : selectedComplaint.raisedBySeller 
-                                ? `${selectedComplaint.raisedBySeller.name} (Seller)` 
-                                : 'Unknown'
-                            }
-                          </span>
-                        </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Against:</span>
-                          <span className="detail-value">
-                            {selectedComplaint.againstUser 
-                              ? `${selectedComplaint.againstUser.name} (User - ${selectedComplaint.againstUser.email})` 
-                              : selectedComplaint.againstSeller 
-                                ? `${selectedComplaint.againstSeller.name} (Seller)` 
-                                : 'Not specified'
-                            }
-                          </span>
-                        </div>
-                        {selectedComplaint.resolvedByAdmin && (
-                          <div className="detail-item">
-                            <span className="detail-label">Resolved By:</span>
-                            <span className="detail-value">
-                              {selectedComplaint.resolvedByAdmin.fullName}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="complaint-detail-section">
-                      <h4>Related Items</h4>
-                      <div className="detail-grid">
-                        <div className="detail-item">
-                          <span className="detail-label">Order ID:</span>
-                          <span className="detail-value">{selectedComplaint.orderId || 'N/A'}</span>
-                        </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Product ID:</span>
-                          <span className="detail-value">{selectedComplaint.productId || 'N/A'}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="complaint-detail-section">
-                      <h4>Description</h4>
-                      <div className="complaint-description-full">
-                        {selectedComplaint.description}
-                      </div>
-                    </div>
-                    
-                    {selectedComplaint.resolutionNote && (
-                      <div className="complaint-detail-section">
-                        <h4>Resolution Notes</h4>
-                        <div className="resolution-notes">
-                          {selectedComplaint.resolutionNote}
-                        </div>
-                      </div>
-                    )}
                   </div>
-                  
                   <div className="modal-actions">
-                    <button
-                      className="dialog-btn close-btn"
-                      onClick={() => setShowComplaintDetail(false)}
-                    >
-                      Close
-                    </button>
-                    <button
-                      className="dialog-btn edit-btn"
-                      onClick={() => {
-                        setShowComplaintDetail(false);
-                        openUpdateComplaintModal(selectedComplaint);
-                      }}
-                    >
-                      <FaEdit /> Update Complaint
-                    </button>
+                    <button className="dialog-btn close-btn" onClick={() => setShowComplaintDetail(false)}>Close</button>
+                    <button className="dialog-btn confirm-btn" onClick={() => { setShowComplaintDetail(false); openUpdateComplaintModal(selectedComplaint); }}>Update</button>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Update Complaint Modal */}
             {showUpdateComplaintModal && selectedComplaint && (
               <div className="modal-overlay">
                 <div className="update-complaint-modal">
                   <div className="modal-header">
-                    <h3>Update Complaint #{selectedComplaint.id}</h3>
-                    <button 
-                      className="modal-close-btn"
-                      onClick={() => setShowUpdateComplaintModal(false)}
-                    >
-                      <FaTimes />
-                    </button>
+                    <h3>Update Complaint</h3>
+                    <button className="modal-close-btn" onClick={() => setShowUpdateComplaintModal(false)}><FaTimes /></button>
                   </div>
-                  
-                  <div className="modals-content">
+                  <div className="modals-body">
                     <div className="form-group">
-                      <label htmlFor="update-status">Status:</label>
-                      <select 
-                        id="update-status"
-                        value={updateStatus}
-                        onChange={(e) => setUpdateStatus(e.target.value)}
-                      >
+                      <label>Status</label>
+                      <select style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #e5e7eb' }} value={updateStatus} onChange={(e) => setUpdateStatus(e.target.value)}>
                         <option value="Pending">Pending</option>
-                        <option value="In Review">In Review</option>
+                        <option value="In Progress">In Progress</option>
                         <option value="Resolved">Resolved</option>
                         <option value="Rejected">Rejected</option>
-                        <option value="Escalated">Escalated</option>
                       </select>
                     </div>
-                    
                     <div className="form-group">
-                      <label htmlFor="update-priority">Priority:</label>
-                      <select 
-                        id="update-priority"
-                        value={updatePriority}
-                        onChange={(e) => setUpdatePriority(e.target.value)}
-                      >
+                      <label>Priority</label>
+                      <select style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #e5e7eb' }} value={updatePriority} onChange={(e) => setUpdatePriority(e.target.value)}>
                         <option value="Low">Low</option>
                         <option value="Medium">Medium</option>
                         <option value="High">High</option>
                         <option value="Critical">Critical</option>
                       </select>
                     </div>
-                    
                     <div className="form-group">
-                      <label htmlFor="resolution-notes">Resolution Notes:</label>
-                      <textarea 
-                        id="resolution-notes"
+                      <label>Resolution Notes</label>
+                      <textarea
+                        style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                        rows="4"
                         value={updateResolutionNote}
                         onChange={(e) => setUpdateResolutionNote(e.target.value)}
-                        placeholder="Add notes about how this complaint was resolved..."
-                        rows="4"
                       />
                     </div>
                   </div>
-                  
                   <div className="modal-actions">
-                    <button
-                      className="dialog-btn cancel-btn"
-                      onClick={() => setShowUpdateComplaintModal(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="dialog-btn confirm-btn"
-                      onClick={handleUpdateComplaint}
-                      disabled={complaintActionLoading[selectedComplaint.id]}
-                    >
-                      {complaintActionLoading[selectedComplaint.id] ? (
-                        <div className="button-spinner"></div>
-                      ) : (
-                        'Update Complaint'
-                      )}
-                    </button>
+                    <button className="dialog-btn cancel-btn" onClick={() => setShowUpdateComplaintModal(false)}>Cancel</button>
+                    <button className="dialog-btn confirm-btn" onClick={handleUpdateComplaint}>Save Update</button>
                   </div>
                 </div>
               </div>
             )}
           </div>
+        ) : (
+          // Orders Management View
+          <div className="orders-management-view">
+            <div className="management-header">
+              <div>
+                <button className="back-button" onClick={switchToDashboard}>
+                  <FaArrowLeft /> Back
+                </button>
+                <h1 className="page-title" style={{ marginTop: '1rem' }}>Orders</h1>
+              </div>
+              <div className="header-search" style={{ width: 'auto' }}>
+                <div className="search-input-wrapper" style={{ position: 'relative' }}>
+                  <FaSearch className="search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search by Order ID or User..."
+                    value={orderSearchTerm}
+                    onChange={handleOrderSearch}
+                    className="search-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredOrders.map(order => (
+                    <tr key={order.id}>
+                      <td>#{order.id}</td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontWeight: 500 }}>{order.user ? order.user.name : 'Guest'}</span>
+                          <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>{order.user ? order.user.email : '-'}</span>
+                        </div>
+                      </td>
+                      <td>{formatDate(order.createdAt)}</td>
+                      <td>{order.items ? order.items.length : 0} items</td>
+                      <td style={{ fontWeight: 600 }}>{formatPrice(order.finalAmount)}</td>
+                      <td>
+                        <span className={`status-badge ${order.paymentMethod === 'Cash on Delivery' ? 'warning' : 'success'}`}>
+                          {order.paymentMethod}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`status-badge ${order.paymentStatus === 'Paid' ? 'success' : order.paymentStatus === 'Pending' ? 'warning' : 'danger'}`}>
+                          {order.paymentStatus || 'Pending'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredOrders.length === 0 && (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>No orders found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };

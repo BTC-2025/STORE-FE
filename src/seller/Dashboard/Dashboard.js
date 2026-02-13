@@ -7,11 +7,11 @@ import ProductsList from './ProductList/ProductsList';
 import OrdersList from './Orderlist/OrdersList';
 import ReturnOrder from './Return/ReturnOrder';
 import ComplaintsManagement from './Complaints/ComplaintsManagement';
-import { 
-  FaSignOutAlt, 
-  FaBox, 
-  FaShoppingCart, 
-  FaChartLine, 
+import {
+  FaSignOutAlt,
+  FaBox,
+  FaShoppingCart,
+  FaChartLine,
   FaBell,
   FaUserCircle,
   FaMoneyBillWave,
@@ -20,7 +20,7 @@ import {
   FaPlus,
   FaTag,
   FaUndo
-  
+
 } from 'react-icons/fa';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -55,7 +55,7 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
 
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-  
+
   // Fetch dashboard data from API
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -65,13 +65,13 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
             'Authorization': `Bearer ${sellerToken}`
           }
         });
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch dashboard data');
         }
-        
+
         const data = await response.json();
-        
+
         // Sort monthly stats by date in ascending order
         const sortedMonthlyStats = data.monthlyStats
           .map(stat => ({
@@ -79,7 +79,7 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
             sales: parseInt(stat.totalSold)
           }))
           .sort((a, b) => new Date(a.date) - new Date(b.date));
-        
+
         // Transform API data to match our component state
         setDashboardData({
           totalOrders: data.TotalSales,
@@ -95,9 +95,10 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
           orderStatusCount: data.orderStatusCount,
           totalProducts: data.TotalProducts,
           countOfCustomer: data.CountOfCustomer,
-          monthlyStats: sortedMonthlyStats
+          monthlyStats: sortedMonthlyStats,
+          totalReturns: data.totalReturns || 0 // ✅ Set totalReturns
         });
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -172,12 +173,12 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
   return (
     <>
       {showProfile ? (
-        <SellerProfile 
-          sellerToken={sellerToken} 
-          onBackToDashboard={() => setShowProfile(false)} 
+        <SellerProfile
+          sellerToken={sellerToken}
+          onBackToDashboard={() => setShowProfile(false)}
         />
       ) : showCreateBrand ? (
-        <CreateBrandPage 
+        <CreateBrandPage
           sellerToken={sellerToken}
           onBackToDashboard={() => setShowCreateBrand(false)}
           onBrandCreated={() => {
@@ -186,28 +187,28 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
           }}
         />
       ) : showAddProduct ? (
-        <AddProductPage 
+        <AddProductPage
           sellerToken={sellerToken}
           onBackToDashboard={() => setShowAddProduct(false)}
         />
       ) : showProducts ? (
-        <ProductsList 
+        <ProductsList
           sellerToken={sellerToken}
           onBackToDashboard={() => setShowProducts(false)}
         />
       ) : showOrders ? (
-        <OrdersList 
+        <OrdersList
           sellerToken={sellerToken}
           onBackToDashboard={() => setShowOrders(false)}
         />
       ) : showComplaints ? (
-        <ComplaintsManagement 
+        <ComplaintsManagement
           sellerToken={sellerToken}
           sellerId={sellerData.id} // Make sure you have seller ID in your sellerData
           onBackToDashboard={() => setShowComplaints(false)}
         />
       ) : showReturnOrders ? (
-        <ReturnOrder 
+        <ReturnOrder
           onBackToDashboard={() => setShowReturnOrders(false)}
         />
       ) : (
@@ -235,19 +236,19 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
           <div className="dashboard-content">
             {/* Brand and Product Options */}
             <div className="action-buttons-section">
-              <button 
+              <button
                 className="btn-create-brand"
                 onClick={() => setShowCreateBrand(true)}
               >
                 <FaTag /> Create Brand
               </button>
-              <button 
+              <button
                 className="btn-add-product"
                 onClick={() => setShowAddProduct(true)}
               >
                 <FaPlus /> Add Product
               </button>
-              <button 
+              <button
                 className="btn-view-complaints"
                 onClick={() => setShowComplaints(true)}
               >
@@ -257,8 +258,8 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
 
             {/* Stats Grid */}
             <div className="stats-grid">
-              <div 
-                className="stat-card clickable" 
+              <div
+                className="stat-card clickable"
                 onClick={() => setShowOrders(true)}
               >
                 <div className="stat-icon">
@@ -270,8 +271,8 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
                 </div>
               </div>
 
-              <div 
-                className="stat-card clickable" 
+              <div
+                className="stat-card clickable"
                 onClick={() => setShowProducts(true)}
               >
                 <div className="stat-icon">
@@ -303,8 +304,8 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
                 </div>
               </div>
 
-              <div 
-                className="stat-card clickable" 
+              <div
+                className="stat-card clickable"
                 onClick={() => setShowReturnOrders(true)}
               >
                 <div className="stat-icon">
@@ -312,7 +313,7 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
                 </div>
                 <div className="stat-content">
                   <h3>Returned Orders</h3>
-                  <p className="stat-value">{dashboardData.pendingOrders}</p>
+                  <p className="stat-value">{dashboardData.totalReturns}</p>
                 </div>
               </div>
 
@@ -335,8 +336,8 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={formatMonthlyStats}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="formattedDate" 
+                      <XAxis
+                        dataKey="formattedDate"
                         tick={{ fontSize: 12 }}
                         angle={-45}
                         textAnchor="end"
@@ -345,10 +346,10 @@ const Dashboard = ({ sellerToken, sellerData, onLogout }) => {
                       <YAxis />
                       <Tooltip content={<CustomTooltip />} />
                       <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="sales" 
-                        stroke="#8884d8" 
+                      <Line
+                        type="monotone"
+                        dataKey="sales"
+                        stroke="#8884d8"
                         activeDot={{ r: 8 }}
                         strokeWidth={2}
                         name="Sales"

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { load } from '@cashfreepayments/cashfree-js';
 import { useNavigate, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import './Checkout.css';
 
 const Checkout = () => {
@@ -11,518 +13,355 @@ const Checkout = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [couponCode, setCouponCode] = useState(''); // Coupon state
+  const [appliedCoupon, setAppliedCoupon] = useState(null); // Applied coupon details
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [verifyingCoupon, setVerifyingCoupon] = useState(false);
+  const paymentSessionIdRef = React.useRef(null); // Track payment session to prevent duplicates
+
   const [newAddress, setNewAddress] = useState({
     street: '',
     city: '',
     state: '',
     postalCode: '',
-    country: 'India'
+    country: 'India',
+    label: 'Home'
   });
+
+  const [paymentMethod, setPaymentMethod] = useState("Cashfree"); // Default to Online
 
   const { id } = useParams();
   const user = JSON.parse(localStorage.getItem('user'));
   const navigate = useNavigate();
 
-  // Fetch product details
+  // Load Cashfree SDK
+  const [cashfree, setCashfree] = useState(null);
   useEffect(() => {
-    const fetchProduct = async () => {
+    const initializeCashfree = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/product/${id}`);
-        setProduct(response.data);
+        const cashfreeInstance = await load({ mode: "sandbox" });
+        setCashfree(cashfreeInstance);
       } catch (error) {
-        console.error('Error fetching product:', error);
+        console.error("Cashfree failed to load", error);
       }
     };
+    initializeCashfree();
+  }, []);
 
-    fetchProduct();
-  }, [id]);
-
-  // Fetch addresses
+  // Fetch product details & reviews
   useEffect(() => {
-    const fetchAddresses = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/address/${user.id}`);
-        setAddresses(response.data);
-        if (response.data.length > 0) {
-          // Ensure we're storing the address ID as a number
-          setSelectedAddress(Number(response.data[0].id));
-        }
+        const [productRes, reviewsRes] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BASE_URL}/api/product/${id}`),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/api/review/product/${id}`)
+        ]);
+        setProduct(productRes.data);
+        setReviews(reviewsRes.data.reviews || []);
       } catch (error) {
-        console.error('Error fetching addresses:', error);
-      }
-    };
-
-    if (user) {
-      fetchAddresses();
-    }
-  }, [user]);
-
-  // Fetch reviews
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/review/product/${id}`);
-        setReviews(response.data.reviews || []);
-      } catch (error) {
-        console.error('Error fetching reviews:', error);
+        console.error('Error fetching data:', error);
+        toast.error("Failed to load product details");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchReviews();
+    fetchData();
   }, [id]);
 
-  const handleAddressChange = (addressId) => {
-    // Convert to number to ensure type consistency
-    setSelectedAddress(Number(addressId));
+  // Fetch addresses
+  useEffect(() => {
+    if (user) {
+      axios.get(`${process.env.REACT_APP_BASE_URL}/api/address/${user.id}`)
+        .then(res => {
+          setAddresses(res.data);
+          if (res.data.length > 0) setSelectedAddress(res.data[0].id);
+        })
+        .catch(err => console.error(err));
+    }
+  }, [user?.id]);
+
+  // Handle Coupon Verification
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return toast.error("Please enter a coupon code");
+
+    setVerifyingCoupon(true);
+    try {
+      const unitPrice = product.price - (product.price * (product.discount / 100));
+      const totalAmount = unitPrice * quantity;
+
+      const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/api/coupon/verify`, {
+        code: couponCode,
+        amount: totalAmount
+      });
+
+      if (response.data.valid) {
+        setAppliedCoupon(response.data);
+        setDiscountAmount(response.data.discount);
+        toast.success(response.data.message);
+      } else {
+        setAppliedCoupon(null);
+        setDiscountAmount(0);
+        toast.error("Invalid Coupon");
+      }
+    } catch (error) {
+      setAppliedCoupon(null);
+      setDiscountAmount(0);
+      toast.error(error.response?.data?.message || "Failed to verify coupon");
+    } finally {
+      setVerifyingCoupon(false);
+    }
   };
 
-  const handleNewAddressChange = (e) => {
-    setNewAddress({
-      ...newAddress,
-      [e.target.name]: e.target.value
-    });
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscountAmount(0);
+    setCouponCode('');
+    toast.success("Coupon removed");
   };
+
+  const handlePlaceOrder = async () => {
+    if (paymentMethod === "Cashfree" && !cashfree) return toast.error("Payment system loading, please wait...");
+    if (!selectedAddress) return toast.error("Please select a shipping address");
+
+    try {
+      // 1. Create Order (Buy Now)
+      const orderData = {
+        userId: user.id,
+        productId: product.id,
+        quantity: quantity,
+        addressId: selectedAddress,
+        couponCode: appliedCoupon ? couponCode : null, // Pass coupon code
+        paymentMethod: paymentMethod, // Use selected method
+        shippingAddress: addresses.find(a => a.id == selectedAddress) // Use loose equality for safety
+      };
+
+      const orderResponse = await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/api/order/buy-now`,
+        orderData
+      );
+
+      // Handle Cashfree Online Payment (Temp Order)
+      if (orderResponse.data.tempOrder) {
+        // Check if we already have a session for this order to prevent duplicates
+        if (paymentSessionIdRef.current) {
+          await cashfree.checkout({
+            paymentSessionId: paymentSessionIdRef.current,
+            redirectTarget: "_self"
+          });
+          return;
+        }
+
+        const paymentResponse = await axios.post(
+          `${process.env.REACT_APP_BASE_URL}/api/payment/create`,
+          {
+            ...orderResponse.data.tempOrder,
+            addressId: selectedAddress // Ensure addressId is passed
+          }
+        );
+
+        if (paymentResponse.data.payment_session_id) {
+          paymentSessionIdRef.current = paymentResponse.data.payment_session_id; // Store session ID
+          // Start Cashfree Checkout
+          await cashfree.checkout({
+            paymentSessionId: paymentResponse.data.payment_session_id,
+            redirectTarget: "_self"
+          });
+        } else {
+          toast.error("Failed to initiate payment session");
+        }
+      }
+      // Handle COD / Wallet (Immediate Order Creation)
+      else if (orderResponse.status === 201 && orderResponse.data.orderId) {
+        toast.success("Order Placed Successfully!");
+        navigate(`/order-success?orderId=${orderResponse.data.orderId}`);
+      }
+    } catch (error) {
+      console.error('Error placing order:', error);
+      if (error.response && error.response.data) {
+        console.error("Server Error Details:", error.response.data);
+      }
+      toast.error(error.response?.data?.error || "Failed to place order");
+    }
+  };
+
+  // ... (Address handlers: handleNewAddressChange, handleAddAddress - simplified for brevity logic remains mostly same)
+  const handleNewAddressChange = (e) => setNewAddress({ ...newAddress, [e.target.name]: e.target.value });
 
   const handleAddAddress = async (e) => {
     e.preventDefault();
     try {
-      const addressData = {
-        ...newAddress,
-        userId: user.id
-      };
-
-      const response = await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/api/address`,
-        addressData,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      // Add the new address to the list and select it
-      setAddresses([...addresses, response.data]);
-      setSelectedAddress(Number(response.data.id)); // Ensure we store as number
+      const res = await axios.post(`${process.env.REACT_APP_BASE_URL}/api/address`, { ...newAddress, userId: user.id });
+      setAddresses([...addresses, res.data]);
+      setSelectedAddress(res.data.id);
       setShowAddressForm(false);
-      setNewAddress({
-        street: '',
-        city: '',
-        state: '',
-        postalCode: '',
-        country: 'India'
-      });
-    } catch (error) {
-      console.error('Error adding address:', error);
-    }
+      setNewAddress({ street: '', city: '', state: '', postalCode: '', country: 'India', label: 'Home' });
+      toast.success("Address added");
+    } catch (error) { toast.error("Failed to add address"); }
   };
 
-  const handlePlaceOrder = async () => {
-    try {
-      // Create order with selected product and address
-      const orderData = {
-        userId: user.id,
-        productId: product.id,
-        addressId: selectedAddress,
-        quantity: quantity,
-        totalAmount: (product.price - (product.price * (product.discount / 100))) * quantity
-      };
+  if (loading) return <div className="checkout-loading-container"><div className="checkout-spinner"></div><p>Loading...</p></div>;
 
-      const response = await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/api/order`,
-        orderData,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (response.status === 200 || response.status === 201) {
-        alert('Order placed successfully!');
-        navigate('/orders');
-      }
-    } catch (error) {
-      console.error('Error placing order:', error);
-      alert('Failed to place order. Please try again.');
-    }
-  };
-
-  const increaseQuantity = () => {
-    if (quantity < (product.stock || 10)) {
-      setQuantity(quantity + 1);
-    }
-  };
-
-  const decreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
-
-  const handleQuantityChange = (e) => {
-    const value = parseInt(e.target.value);
-    if (!isNaN(value) && value > 0 && value <= (product.stock || 10)) {
-      setQuantity(value);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="checkout-loading-container">
-        <div className="checkout-spinner"></div>
-        <p>Loading your checkout experience...</p>
-      </div>
-    );
-  }
-
-  // Calculate price details
+  // Calculations
   const unitPrice = product.price - (product.price * (product.discount / 100));
-  const subtotal = product.price * quantity;
-  const discountAmount = (product.price * (product.discount / 100)) * quantity;
-  const total = unitPrice * quantity;
+  const itemTotal = unitPrice * quantity;
+  const deliveryCharge = itemTotal > 500 ? 0 : 40; // Example delivery logic
+  const tax = (itemTotal - discountAmount) * 0.18; // 18% GST example
+  const finalTotal = itemTotal - discountAmount + deliveryCharge + tax;
 
   return (
     <div className="checkout-container">
-      
       <div className="checkout-content mt-3">
-        {/* Left Column - Product & Reviews */}
+        {/* Left Column */}
         <div className="checkout-left">
-          {/* Product Card */}
+          {/* Product Details */}
           <div className="elegant-card">
-            <div className="cards-header elegant-header">
-              <h2>Product Details</h2>
-            </div>
+            <div className="cards-header elegant-header"><h2>Product Details</h2></div>
             <div className="card-body">
-              {product && (
-                <>
-                  <div className="product-display">
-                    <div className="products-image-container">
-                      <img 
-                        src={product.image} 
-                        alt={product.name} 
-                        className="product-image"
-                      />
-                      {product.discount > 0 && (
-                        <div className="discounts-badge">-{product.discount}%</div>
-                      )}
-                    </div>
-                    <div className="product-info">
-                      <h3 className="product-title">{product.name}</h3>
-                      <p className="product-category">{product.category}</p>
-                      <p className="product-description">{product.description || "Premium quality product with excellent features and durability."}</p>
-                      
-                      <div className="price-details">
-                        {product.discount > 0 ? (
-                          <>
-                            <div className="original-price">${product.price.toFixed(2)}</div>
-                            <div className="final-price">${unitPrice.toFixed(2)}</div>
-                            <div className="savings">You save ${(product.price * (product.discount / 100)).toFixed(2)}</div>
-                          </>
-                        ) : (
-                          <div className="final-price">${product.price.toFixed(2)}</div>
-                        )}
-                      </div>
-                    </div>
+              <div className="product-display">
+                <div className="products-image-container">
+                  <img src={product.image} alt={product.name} className="product-image" />
+                  {product.discount > 0 && <div className="discounts-badge">-{product.discount}%</div>}
+                </div>
+                <div className="product-info">
+                  <h3 className="product-title">{product.name}</h3>
+                  <p className="product-category">{product.category}</p>
+                  <div className="price-details">
+                    <span className="final-price">₹{unitPrice.toFixed(2)}</span>
+                    {product.discount > 0 && <span className="original-price">₹{product.price}</span>}
                   </div>
-                  
-                  {/* Quantity Selector */}
-                  <div className="quantity-selector">
-                    <label htmlFor="quantity">Quantity:</label>
-                    <div className="quantity-controls">
-                      <button 
-                        className="quantity-btn" 
-                        onClick={decreaseQuantity}
-                        disabled={quantity <= 1}
-                      >
-                        <i className="fas fa-minus"></i>
-                      </button>
-                      <input
-                        type="number"
-                        id="quantity"
-                        min="1"
-                        max={product.stock || 10}
-                        value={quantity}
-                        onChange={handleQuantityChange}
-                        className="quantity-input"
-                      />
-                      <button 
-                        className="quantity-btn" 
-                        onClick={increaseQuantity}
-                        disabled={quantity >= (product.stock || 10)}
-                      >
-                        <i className="fas fa-plus"></i>
-                      </button>
-                    </div>
-                    <span className="stock-info">{product.stock || 10} available</span>
-                  </div>
-                </>
-              )}
+                </div>
+              </div>
+
+              {/* Quantity */}
+              <div className="quantity-selector mt-3">
+                <label>Quantity:</label>
+                <div className="quantity-controls">
+                  <button className="quantity-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1}><i className="fas fa-minus"></i></button>
+                  <input type="number" readOnly value={quantity} className="quantity-input" />
+                  <button className="quantity-btn" onClick={() => setQuantity(Math.min(product.stock, quantity + 1))} disabled={quantity >= product.stock}><i className="fas fa-plus"></i></button>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Reviews Section */}
-          <div className="elegant-card reviews-section">
+          {/* Delivery Address */}
+          <div className="elegant-card mt-3">
             <div className="cards-header elegant-header">
-              <h2>Customer Reviews</h2>
-              {reviews.length > 0 && (
-                <div className="average-rating">
-                  <div className="stars">
-                    {[...Array(5)].map((_, i) => (
-                      <i 
-                        key={i} 
-                        className={`fas fa-star ${i < Math.floor(reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length) ? 'active' : ''}`}
-                      ></i>
-                    ))}
-                  </div>
-                  <span>Based on {reviews.length} reviews</span>
-                </div>
-              )}
+              <h2>Shipping Address</h2>
+              <button className="icon-button" onClick={() => setShowAddressForm(!showAddressForm)}>
+                <i className={`fas ${showAddressForm ? 'fa-times' : 'fa-plus'}`}></i> {showAddressForm ? 'Cancel' : 'Add New'}
+              </button>
             </div>
             <div className="card-body">
-              {reviews.length > 0 ? (
-                <div className="reviews-container">
-                  {reviews.slice(0, 3).map(review => (
-                    <div key={review.id} className="review-item">
-                      <div className="review-header">
-                        <div className="reviewer-info">
-                          <div className="reviewer-avatar">
-                            {review.user.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="reviewer-details">
-                            <h4>{review.user.name}</h4>
-                            <p>{new Date(review.createdAt).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                        <div className="review-rating">
-                          {[...Array(5)].map((_, i) => (
-                            <i 
-                              key={i} 
-                              className={`fas fa-star ${i < Math.floor(review.rating) ? 'active' : ''}`}
-                            ></i>
-                          ))}
+              {!showAddressForm ? (
+                addresses.length > 0 ? (
+                  <div className="address-list">
+                    {addresses.map(addr => (
+                      <div key={addr.id} className={`address-item ${selectedAddress === addr.id ? 'selected' : ''}`} onClick={() => setSelectedAddress(addr.id)}>
+                        <input type="radio" checked={selectedAddress === addr.id} readOnly />
+                        <div className="address-details ms-2">
+                          <strong>{addr.label}</strong>
+                          <p>{addr.street}, {addr.city}, {addr.state} - {addr.postalCode}</p>
                         </div>
                       </div>
-                      <p className="review-comment">{review.comment}</p>
-                    </div>
-                  ))}
-                  {reviews.length > 3 && (
-                    <button className="view-all-reviews">View All Reviews</button>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                ) : <p className="no-addresses">No addresses found. Please add one.</p>
               ) : (
-                <div className="no-reviews">
-                  <i className="fas fa-comment-slash"></i>
-                  <p>No reviews yet for this product.</p>
-                </div>
+                <form onSubmit={handleAddAddress} className="address-form">
+                  {/* Simplified Form Fields */}
+                  <input className="form-control mb-2" placeholder="Street Address" value={newAddress.street} onChange={e => setNewAddress({ ...newAddress, street: e.target.value })} required />
+                  <div className="d-flex gap-2">
+                    <input className="form-control mb-2" placeholder="City" value={newAddress.city} onChange={e => setNewAddress({ ...newAddress, city: e.target.value })} required />
+                    <input className="form-control mb-2" placeholder="State" value={newAddress.state} onChange={e => setNewAddress({ ...newAddress, state: e.target.value })} required />
+                  </div>
+                  <div className="d-flex gap-2">
+                    <input className="form-control mb-2" placeholder="Postal Code" value={newAddress.postalCode} onChange={e => setNewAddress({ ...newAddress, postalCode: e.target.value })} required />
+                    <select className="form-control mb-2" value={newAddress.label} onChange={e => setNewAddress({ ...newAddress, label: e.target.value })}>
+                      <option>Home</option><option>Work</option><option>Other</option>
+                    </select>
+                  </div>
+                  <button type="submit" className="save-address-btn w-100">Save Address</button>
+                </form>
               )}
             </div>
           </div>
         </div>
 
-        {/* Right Column - Address & Order Summary */}
+        {/* Right Column: Summary & Payment */}
         <div className="checkout-right">
-          {/* Address Selection */}
-          <div className="elegant-card">
-            <div className="cards-header elegant-header">
-              <h2>Shipping Address</h2>
-              <button 
-                className="icon-button"
-                onClick={() => setShowAddressForm(!showAddressForm)}
-              >
-                <i className={`fas ${showAddressForm ? 'fa-times' : 'fa-plus'}`}></i>
-                {showAddressForm ? 'Cancel' : 'Add New'}
-              </button>
-            </div>
-            <div className="checkout-card-body">
-              {/* Existing Addresses */}
-              {addresses.length > 0 ? (
-                <div className="address-list">
-                  {addresses.map(address => (
-                    <div 
-                      key={address.id} 
-                      className={`address-item ${selectedAddress === address.id ? 'selected' : ''}`}
-                      onClick={() => handleAddressChange(address.id)}
-                    >
-                      <div className="address-radio">
-                        <input 
-                          type="radio" 
-                          name="address" 
-                          checked={selectedAddress === address.id}
-                          onChange={() => handleAddressChange(address.id)}
-                          value={address.id}
-                        />
-                      </div>
-                      <div className="address-details">
-                        <div className="address-label">{address.label}</div>
-                        <p className="address-text">
-                          {address.street}, {address.city}, {address.state} - {address.postalCode}, {address.country}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="no-addresses">
-                  <i className="fas fa-map-marker-alt"></i>
-                  <p>No addresses found. Please add a delivery address.</p>
-                </div>
-              )}
-
-              {/* Add New Address Button */}
-              <button 
-                className="add-address-btn"
-                onClick={() => setShowAddressForm(!showAddressForm)}
-              >
-                <i className={`fas fa-${showAddressForm ? 'minus' : 'plus'} me-2`}></i>
-                {showAddressForm ? 'Cancel' : 'Add New Address'}
-              </button>
-
-              {/* New Address Form */}
-              {showAddressForm && (
-                <form onSubmit={handleAddAddress} className="address-form">
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="label">Address Label</label>
-                      <select 
-                        id="label"
-                        name="label"
-                        value={newAddress.label}
-                        onChange={handleNewAddressChange}
-                        className="form-control"
-                      >
-                        <option value="Home">Home</option>
-                        <option value="Work">Work</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="street">Street Address *</label>
-                    <textarea 
-                      id="street"
-                      name="street"
-                      value={newAddress.street}
-                      onChange={handleNewAddressChange}
-                      className="form-control"
-                      rows="3"
-                      required
-                    />
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="city">City *</label>
-                      <input 
-                        type="text"
-                        id="city"
-                        name="city"
-                        value={newAddress.city}
-                        onChange={handleNewAddressChange}
-                        className="form-control"
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="state">State *</label>
-                      <input 
-                        type="text"
-                        id="state"
-                        name="state"
-                        value={newAddress.state}
-                        onChange={handleNewAddressChange}
-                        className="form-control"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="postalCode">Postal Code *</label>
-                      <input 
-                        type="text"
-                        id="postalCode"
-                        name="postalCode"
-                        value={newAddress.postalCode}
-                        onChange={handleNewAddressChange}
-                        className="form-control"
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="country">Country</label>
-                      <input 
-                        type="text"
-                        id="country"
-                        name="country"
-                        value={newAddress.country}
-                        onChange={handleNewAddressChange}
-                        className="form-control"
-                      />
-                    </div>
-                  </div>
-
-                  <button type="submit" className="save-address-btn">
-                    <i className="fas fa-save me-2"></i>
-                    Save Address
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-
-          {/* Order Summary */}
           <div className="elegant-card order-summary">
-            <div className="cards-header elegant-header">
-              <h2>Order Summary</h2>
-            </div>
+            <div className="cards-header elegant-header"><h2>Order Summary</h2></div>
             <div className="card-body">
-              {product && (
-                <>
-                  <div className="summary-item">
-                    <span>Subtotal ({quantity} {quantity > 1 ? 'items' : 'item'})</span>
-                    <span>${subtotal.toFixed(2)}</span>
+              {/* Price Breakdown */}
+              <div className="summary-row"><span>Item Total</span><span>₹{itemTotal.toFixed(2)}</span></div>
+              <div className="summary-row"><span>Delivery</span><span className={deliveryCharge === 0 ? 'text-success' : ''}>{deliveryCharge === 0 ? 'Free' : `₹${deliveryCharge}`}</span></div>
+              <div className="summary-row"><span>Tax (18% GST)</span><span>₹{tax.toFixed(2)}</span></div>
+
+              {/* Coupon Section */}
+              <div className="coupon-section mt-3 mb-3">
+                {!appliedCoupon ? (
+                  <div className="coupon-input-group">
+                    <input
+                      type="text"
+                      placeholder="Enter Coupon Code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      className="coupon-input"
+                    />
+                    <button className="apply-coupon-btn" onClick={handleApplyCoupon} disabled={verifyingCoupon}>
+                      {verifyingCoupon ? '...' : 'Apply'}
+                    </button>
                   </div>
-                  {product.discount > 0 && (
-                    <div className="summary-item discount">
-                      <span>Discount ({product.discount}%)</span>
-                      <span>-${discountAmount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="summary-item">
-                    <span>Shipping</span>
-                    <span className="free-shipping">Free</span>
+                ) : (
+                  <div className="coupon-applied">
+                    <span>Code: <strong>{couponCode}</strong> applied</span>
+                    <button className="remove-coupon-btn" onClick={handleRemoveCoupon}>&times;</button>
                   </div>
-                  <div className="summary-item">
-                    <span>Estimated Tax</span>
-                    <span>${(total * 0.08).toFixed(2)}</span>
+                )}
+              </div>
+
+              {appliedCoupon && (
+                <div className="summary-row discount">
+                  <span>Coupon Discount</span>
+                  <span>-₹{discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+
+              <div className="summary-total">
+                <span>Total Payable</span>
+                <span>₹{finalTotal.toFixed(2)}</span>
+              </div>
+
+              {/* Payment Method Selection */}
+              <div className="payment-method-selection mt-4">
+                <h4>Select Payment Method</h4>
+                <div className="payment-options">
+                  <div className={`payment-option ${paymentMethod === 'Cashfree' ? 'selected' : ''}`} onClick={() => setPaymentMethod('Cashfree')}>
+                    <input type="radio" checked={paymentMethod === 'Cashfree'} readOnly />
+                    <span className="ms-2"><i className="fas fa-credit-card me-2"></i>Pay Online (Card/UPI/NetBanking)</span>
                   </div>
-                  <div className="summary-divider"></div>
-                  <div className="summary-total">
-                    <span>Total</span>
-                    <span>${(total * 1.08).toFixed(2)}</span>
+                  <div className={`payment-option ${paymentMethod === 'COD' ? 'selected' : ''}`} onClick={() => setPaymentMethod('COD')}>
+                    <input type="radio" checked={paymentMethod === 'COD'} readOnly />
+                    <span className="ms-2"><i className="fas fa-money-bill-wave me-2"></i>Cash on Delivery</span>
                   </div>
-                  
-                  <button 
-                    className="place-order-btn"
-                    onClick={handlePlaceOrder}
-                    disabled={!selectedAddress}
-                  >
-                    <i className="fas fa-lock"></i>
-                    Complete Purchase
-                  </button>
-                  
-                  <div className="security-assurance">
-                    <i className="fas fa-shield-alt"></i>
-                    <span>Secure checkout guaranteed</span>
-                  </div>
-                </>
+                </div>
+              </div>
+
+              <div className="payment-method-info mt-3">
+                {paymentMethod === 'Cashfree' ? (
+                  <p><i className="fas fa-lock"></i> Secured by Cashfree Payments</p>
+                ) : (
+                  <p><i className="fas fa-truck"></i> Pay cash upon delivery</p>
+                )}
+              </div>
+
+              {product && product.stock < 1 ? (
+                <div className="alert alert-danger mt-3">Out of Stock</div>
+              ) : (
+                <button className="place-order-btn mt-3" onClick={handlePlaceOrder} disabled={!selectedAddress || (product && product.stock < quantity)}>
+                  {paymentMethod === 'COD' ? 'Place Order' : `Proceed to Pay ₹${finalTotal.toFixed(2)}`}
+                </button>
               )}
             </div>
           </div>

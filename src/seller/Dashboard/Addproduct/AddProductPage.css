@@ -1,170 +1,198 @@
 /* AddProductPage.css */
-.ap-container {
+
+/* Variables - inheriting some from CreateBrand for consistency */
+:root {
+  --ap-primary: #4f46e5;
+  --ap-primary-hover: #4338ca;
+  --ap-bg: #f3f4f6;
+  --ap-card-bg: #ffffff;
+  --ap-text-main: #111827;
+  --ap-text-sub: #6b7280;
+  --ap-border: #e5e7eb;
+  --ap-radius: 12px;
+}
+
+.ap-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
+  background-color: var(--ap-bg);
+  padding: 2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ap-text-main);
 }
 
+.ap-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
 .ap-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: white;
-  padding: 20px 30px;
-  border-radius: 16px;
-  margin-bottom: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
 }
 
-.ap-back-btn {
-  background: #f8f9fa;
+.ap-back-link {
+  background: none;
   border: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  color: var(--ap-text-sub);
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: #6c757d;
+  margin-bottom: 1rem;
+  padding: 0;
 }
 
-.ap-back-btn:hover {
-  background: #e9ecef;
-  transform: translateX(-2px);
+.ap-back-link:hover {
+  color: var(--ap-primary);
+}
+
+.ap-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .ap-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .ap-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #2d3748;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.25rem 0;
+}
+
+.ap-subtitle {
+  color: var(--ap-text-sub);
   margin: 0;
 }
 
 .ap-header-actions {
   display: flex;
-  gap: 15px;
+  gap: 0.75rem;
 }
 
-.ap-save-btn {
-  background: linear-gradient(135deg, #4fd1c5 0%, #38b2ac 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(79, 209, 197, 0.3);
-}
-
-.ap-save-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(79, 209, 197, 0.4);
-}
-
-.ap-save-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.ap-content {
+.ap-btn-secondary {
+  padding: 0.75rem 1.25rem;
+  border: 1px solid var(--ap-border);
   background: white;
-  border-radius: 16px;
-  padding: 40px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.ap-no-brands {
-  text-align: center;
-  padding: 60px 40px;
+.ap-btn-secondary:hover {
+  background: #f9fafb;
 }
 
-.ap-no-brands-icon {
-  font-size: 64px;
-  color: #e2e8f0;
-  margin-bottom: 20px;
-}
-
-.ap-no-brands h2 {
-  font-size: 24px;
-  color: #2d3748;
-  margin-bottom: 15px;
-}
-
-.ap-no-brands p {
-  color: #718096;
-  margin-bottom: 30px;
-  font-size: 16px;
-}
-
-.ap-primary-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+.ap-btn-primary {
+  padding: 0.75rem 1.5rem;
   border: none;
-  padding: 15px 30px;
-  border-radius: 12px;
+  background: var(--ap-primary);
+  color: white;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+  transition: all 0.2s;
 }
 
-.ap-primary-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+.ap-btn-primary:hover {
+  background: var(--ap-primary-hover);
+  transform: translateY(-1px);
 }
 
-.ap-form-container {
-  max-width: 1000px;
-  margin: 0 auto;
+.ap-btn-primary:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 
-.ap-form-grid {
+/* Grid Layout */
+.ap-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  margin-bottom: 40px;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
 }
 
-.ap-form-section {
-  background: #f8fafc;
-  padding: 25px;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
+@media (max-width: 1024px) {
+  .ap-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.ap-section-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #e2e8f0;
+.ap-col-main,
+.ap-col-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.ap-input-group {
-  margin-bottom: 20px;
+/* Cards */
+.ap-card {
+  background: var(--ap-card-bg);
+  border-radius: var(--ap-radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
-.ap-label {
-  display: block;
+.ap-card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--ap-border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f9fafb;
+}
+
+.ap-card-icon {
+  color: var(--ap-primary);
+  font-size: 1.1rem;
+}
+
+.ap-card-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
   font-weight: 600;
-  color: #4a5568;
-  margin-bottom: 8px;
-  font-size: 14px;
+}
+
+.ap-card-body {
+  padding: 1.5rem;
+}
+
+/* Form Groups */
+.ap-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.ap-form-group:last-child {
+  margin-bottom: 0;
+}
+
+.ap-form-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  color: var(--ap-text-main);
 }
 
 .ap-input,
 .ap-select,
 .ap-textarea {
   width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 15px;
-  transition: all 0.3s ease;
+  padding: 0.75rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
   background: white;
 }
 
@@ -172,176 +200,90 @@
 .ap-select:focus,
 .ap-textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--ap-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-.ap-textarea {
-  resize: vertical;
-  min-height: 100px;
-}
-
-.ap-input-row {
+.ap-row-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: 1rem;
 }
 
-.ap-file-upload {
-  display: flex;
-  gap: 10px;
+@media (max-width: 640px) {
+  .ap-row-2 {
+    grid-template-columns: 1fr;
+  }
 }
 
-.ap-upload-btn {
-  background: #edf2f7;
-  border: 2px solid #e2e8f0;
-  padding: 14px 20px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 600;
-  color: #4a5568;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
-
-.ap-upload-btn:hover {
-  background: #e2e8f0;
-}
-
-.ap-checkbox-group {
-  margin-bottom: 20px;
-}
-
-.ap-checkbox-label {
+/* Image Preview */
+.ap-image-preview-area {
+  margin-top: 1rem;
+  height: 200px;
+  border: 2px dashed var(--ap-border);
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  cursor: pointer;
-  font-weight: 500;
-  color: #4a5568;
+  justify-content: center;
+  overflow: hidden;
+  background: #fafafa;
 }
 
-.ap-checkbox {
-  display: none;
+.ap-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-.ap-checkbox-custom {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #cbd5e0;
-  border-radius: 6px;
-  margin-right: 12px;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.ap-checkbox:checked + .ap-checkbox-custom {
-  background: #667eea;
-  border-color: #667eea;
-}
-
-.ap-checkbox:checked + .ap-checkbox-custom::after {
-  content: '✓';
-  position: absolute;
-  color: white;
-  font-size: 12px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.ap-form-actions {
+.ap-preview-placeholder {
   display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-  padding-top: 30px;
-  border-top: 2px solid #e2e8f0;
+  flex-direction: column;
+  align-items: center;
+  color: var(--ap-text-sub);
+  gap: 0.5rem;
 }
 
-.ap-cancel-btn {
-  background: #edf2f7;
-  color: #4a5568;
-  border: none;
-  padding: 15px 30px;
-  border-radius: 12px;
-  font-weight: 600;
+/* Toggles */
+.ap-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  user-select: none;
 }
 
-.ap-cancel-btn:hover {
-  background: #e2e8f0;
+.ap-toggle-row span {
+  font-weight: 500;
+  font-size: 0.95rem;
 }
 
-.ap-submit-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+.ap-divider {
   border: none;
-  padding: 15px 30px;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  border-top: 1px solid var(--ap-border);
+  margin: 1rem 0;
 }
 
-.ap-submit-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+/* Empty State */
+.ap-empty-state {
+  background: white;
+  border-radius: 16px;
+  padding: 4rem 2rem;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.ap-submit-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.ap-empty-icon {
+  font-size: 3rem;
+  color: var(--ap-text-sub);
+  margin-bottom: 1rem;
 }
 
-/* Responsive Design */
-@media (max-width: 968px) {
-  .ap-form-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .ap-input-row {
-    grid-template-columns: 1fr;
-  }
+.ap-empty-state h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
-@media (max-width: 768px) {
-  .ap-container {
-    padding: 10px;
-  }
-  
-  .ap-header {
-    flex-direction: column;
-    gap: 20px;
-    text-align: center;
-  }
-  
-  .ap-content {
-    padding: 20px;
-  }
-  
-  .ap-form-actions {
-    flex-direction: column;
-  }
-  
-  .ap-file-upload {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 480px) {
-  .ap-form-section {
-    padding: 20px;
-  }
-  
-  .ap-title {
-    font-size: 24px;
-  }
-  
-  .ap-save-btn,
-  .ap-primary-btn,
-  .ap-cancel-btn,
-  .ap-submit-btn {
-    padding: 12px 20px;
-  }
+.ap-empty-state p {
+  color: var(--ap-text-sub);
+  margin-bottom: 1.5rem;
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import logo from '../../assests/login.png'
 import axios from "axios";
 import toast from "react-hot-toast";
+import './LoginModal.css';
 
 const LoginModal = ({ show, handleClose, onLogin }) => {
   const [formData, setFormData] = useState({
@@ -19,7 +20,7 @@ const LoginModal = ({ show, handleClose, onLogin }) => {
 
   useEffect(() => {
     if (show && !hasOpened) {
-      setHasOpened(true); 
+      setHasOpened(true);
       setTimeout(() => setAnimate(true), 10);
     } else if (!show) {
       setAnimate(false);
@@ -47,64 +48,47 @@ const LoginModal = ({ show, handleClose, onLogin }) => {
   // };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const res = await axios.post("https://periodically-road-stays-afghanistan.trycloudflare.com/api/auth/login",
-      formData,
-      { headers: { "Content-Type": "application/json" } }
-    );
+    e.preventDefault();
+    try {
+      const res = await axios.post("https://periodically-road-stays-afghanistan.trycloudflare.com/api/auth/login",
+        formData,
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-    toast.success(res.data.message || "Login successful!");
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-    localStorage.setItem("token", res.data.token);
+      toast.success(res.data.message || "Login successful!");
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("token", res.data.token);
 
-    if (onLogin) onLogin(res.data); // ✅ sends both user + token to App
-  } catch (err) {
-    toast.error(err.response?.data?.error || "Login failed");
-  }
-};
+      if (onLogin) onLogin(res.data); // ✅ sends both user + token to App
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Login failed");
+    }
+  };
 
 
   if (!show || (hasOpened && !animate)) return null;
 
   return (
-    <div
-      className={`modal fade ${show ? "show d-block" : ""}`}
-      tabIndex="-1"
-      style={{
-        backgroundColor: "rgba(0,0,0,0.5)",
-        transition: "opacity 0.3s ease",
-      }}
-    >
-      <div
-        className="modal-dialog modal-dialog-centered modal-lg"
-        style={{
-          transform: animate ? "translateY(0) scale(1)" : "translateY(-30px) scale(0.95)",
-          opacity: animate ? 1 : 0,
-          transition: "all 0.4s ease-in-out",
-        }}
-      >
-        <div className="modal-content">
-          <div className="d-flex h-100">
+    <div className={`login-modal-overlay ${animate ? 'show' : ''}`}>
+      <div className="login-modal-dialog">
+        <div className="login-modal-content">
+          <div className="login-modal-body">
             {/* Left Section */}
-            <div
-              className="p-5 text-white d-flex flex-column justify-content-between"
-              style={{ background: "#2874f0", width: "40%" }}
-            >
+            <div className="login-modal-left">
               <div>
-                <h4 className="fw-bold">Login</h4>
+                <h4>Login</h4>
                 <p>Get access to your Orders, Wishlist and Recommendations</p>
               </div>
-              <div className="text-center">
-                <img src={logo} alt="Login" className="pt-5 img-fluid" />
+              <div className="login-modal-image">
+                <img src={logo} alt="Login" />
               </div>
             </div>
 
             {/* Right Section */}
-            <div className="p-4 flex-grow-1 d-flex flex-column mt-5 justify-content-center">
-              <form onSubmit={handleSubmit}>
+            <div className="login-modal-right">
+              <form className="login-modal-form" onSubmit={handleSubmit}>
                 {/* Email Field */}
-                <div className="mb-3">
+                <div>
                   <input
                     type="email"
                     name="email"
@@ -117,7 +101,7 @@ const LoginModal = ({ show, handleClose, onLogin }) => {
                 </div>
 
                 {/* Password Field */}
-                <div className="mb-3">
+                <div>
                   <input
                     type="password"
                     name="password"
@@ -129,17 +113,17 @@ const LoginModal = ({ show, handleClose, onLogin }) => {
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary w-100">
+                <button type="submit" className="btn btn-primary">
                   Login
                 </button>
               </form>
 
               {/* Extra Links */}
-              <div className="mt-3 text-center">
-                <a href="#forgot" className="d-block text-secondary mb-2">
+              <div className="login-modal-links">
+                <a href="#forgot">
                   Forgot Password?
                 </a>
-                <a href="#signup" className="text-primary fw-bold">
+                <a href="#signup" className="text-primary">
                   New here? Create an account
                 </a>
               </div>
@@ -149,9 +133,12 @@ const LoginModal = ({ show, handleClose, onLogin }) => {
           {/* Close Button */}
           <button
             type="button"
-            className="btn-close position-absolute top-0 end-0 m-3"
+            className="login-modal-close"
             onClick={handleClose}
-          ></button>
+            aria-label="Close"
+          >
+            <i className="fas fa-times"></i>
+          </button>
         </div>
       </div>
     </div>

@@ -1,0 +1,157 @@
+/* EmptyState Styles */
+
+.empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    padding: var(--spacing-xl);
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    animation: fadeIn 0.4s ease;
+}
+
+.empty-state-content {
+    text-align: center;
+    max-width: 500px;
+}
+
+/* Icon */
+.empty-state-icon {
+    margin-bottom: var(--spacing-lg);
+}
+
+.empty-state-icon i {
+    font-size: 5rem;
+    color: var(--color-border-dark);
+    opacity: 0.5;
+    animation: fadeIn 0.6s ease;
+}
+
+/* Title */
+.empty-state-title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    margin-bottom: var(--spacing-md);
+    animation: fadeIn 0.7s ease;
+}
+
+/* Message */
+.empty-state-message {
+    font-size: var(--font-size-base);
+    color: var(--color-text-light);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--spacing-xl);
+    animation: fadeIn 0.8s ease;
+}
+
+/* Custom Content Area */
+.empty-state-custom {
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Action Button/Link */
+.empty-state-action {
+    animation: fadeIn 0.9s ease;
+}
+
+.btn-empty-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--color-primary-gradient);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition-all);
+    box-shadow: var(--shadow-primary);
+}
+
+.btn-empty-state:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    color: var(--color-white);
+}
+
+.btn-empty-state:active {
+    transform: translateY(0);
+}
+
+.btn-empty-state i {
+    margin-right: var(--spacing-sm);
+}
+
+/* Variant-Specific Styling */
+.empty-state[data-variant="cart"] .empty-state-icon i {
+    color: var(--color-primary);
+}
+
+.empty-state[data-variant="wishlist"] .empty-state-icon i {
+    color: var(--color-danger);
+}
+
+.empty-state[data-variant="orders"] .empty-state-icon i {
+    color: var(--color-success);
+}
+
+.empty-state[data-variant="search"] .empty-state-icon i {
+    color: var(--color-warning);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .empty-state {
+        min-height: 300px;
+        padding: var(--spacing-lg);
+    }
+
+    .empty-state-icon i {
+        font-size: 4rem;
+    }
+
+    .empty-state-title {
+        font-size: var(--font-size-xl);
+    }
+
+    .empty-state-message {
+        font-size: var(--font-size-sm);
+    }
+
+    .btn-empty-state {
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-lg);
+    }
+}
+
+@media (max-width: 480px) {
+    .empty-state {
+        padding: var(--spacing-md);
+    }
+
+    .empty-state-icon i {
+        font-size: 3rem;
+    }
+
+    .empty-state-title {
+        font-size: var(--font-size-lg);
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

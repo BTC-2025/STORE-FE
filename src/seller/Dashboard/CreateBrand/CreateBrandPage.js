@@ -1,7 +1,6 @@
-// CreateBrandPage.js
 import React, { useState } from 'react';
-import { FaArrowLeft, FaUpload, FaCheck, FaStar, FaGlobe } from 'react-icons/fa';
-import './CreateBrandPage.css'; // We'll create this CSS file
+import { FaArrowLeft, FaUpload, FaCheck, FaStar } from 'react-icons/fa';
+import './CreateBrandPage.css';
 
 const CreateBrandPage = ({ sellerToken, onBackToDashboard, onBrandCreated }) => {
   const [newBrand, setNewBrand] = useState({
@@ -16,25 +15,25 @@ const CreateBrandPage = ({ sellerToken, onBackToDashboard, onBrandCreated }) => 
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!newBrand.name.trim()) {
       newErrors.name = 'Brand name is required';
     } else if (newBrand.name.length < 2) {
       newErrors.name = 'Brand name must be at least 2 characters';
     }
-    
+
     if (!newBrand.logo.trim()) {
       newErrors.logo = 'Logo URL is required';
     } else if (!isValidUrl(newBrand.logo)) {
       newErrors.logo = 'Please enter a valid URL';
     }
-    
+
     if (!newBrand.description.trim()) {
       newErrors.description = 'Description is required';
     } else if (newBrand.description.length < 10) {
       newErrors.description = 'Description must be at least 10 characters';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -50,11 +49,11 @@ const CreateBrandPage = ({ sellerToken, onBackToDashboard, onBrandCreated }) => 
 
   const handleLogoChange = (e) => {
     const url = e.target.value;
-    setNewBrand({...newBrand, logo: url});
-    
+    setNewBrand({ ...newBrand, logo: url });
+
     if (isValidUrl(url)) {
       setLogoPreview(url);
-      setErrors({...errors, logo: ''});
+      setErrors({ ...errors, logo: '' });
     } else if (url.trim() === '') {
       setLogoPreview('');
     }
@@ -62,13 +61,13 @@ const CreateBrandPage = ({ sellerToken, onBackToDashboard, onBrandCreated }) => 
 
   const handleCreateBrand = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
-    
+
     try {
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/seller/brands`, {
         method: 'POST',
@@ -83,20 +82,19 @@ const CreateBrandPage = ({ sellerToken, onBackToDashboard, onBrandCreated }) => 
           isFeatured: newBrand.isFeatured
         }])
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to create brand');
       }
-      
-      const data = await response.json();
-      
-      // Show success message with animation
-      document.querySelector('.success-message').classList.add('show');
+
+      const successMsg = document.querySelector('.cb-success-overlay');
+      if (successMsg) successMsg.classList.add('show');
+
       setTimeout(() => {
         onBrandCreated();
       }, 1500);
-      
+
     } catch (error) {
       console.error('Error creating brand:', error);
       setErrors({ submit: error.message || 'Failed to create brand. Please try again.' });
@@ -106,205 +104,116 @@ const CreateBrandPage = ({ sellerToken, onBackToDashboard, onBrandCreated }) => 
   };
 
   return (
-    <div className="create-brand-page">
-      {/* Success Message Overlay */}
-      <div className="success-message">
-        <div className="success-content">
-          <FaCheck className="success-icon" />
-          <h3>Brand Created Successfully!</h3>
-          <p>Your brand has been created and is now ready for products.</p>
+    <div className="cb-page">
+      {/* Success Overlay */}
+      <div className="cb-success-overlay">
+        <div className="cb-success-modal">
+          <div className="cb-success-icon">
+            <FaCheck />
+          </div>
+          <h3>Brand Created!</h3>
+          <p>Your brand has been established successfully.</p>
         </div>
       </div>
 
-      <div className="brand-container">
+      <div className="cb-container">
         {/* Header */}
-        <header className="brand-header">
-          <button className="btn-back" onClick={onBackToDashboard}>
-            <FaArrowLeft />
-            <span>Back to Dashboard</span>
+        <header className="cb-header">
+          <button className="cb-back-btn" onClick={onBackToDashboard}>
+            <FaArrowLeft /> Back
           </button>
-          <div className="header-content">
+          <div className="cb-title-section">
             <h1>Create New Brand</h1>
-            <p>Build your brand identity and establish your presence in the marketplace</p>
           </div>
         </header>
 
-        {/* Main Content */}
-        <div className="brand-content">
-          <div className="brand-form-container">
-            <form onSubmit={handleCreateBrand} className="brand-form">
-              {/* Brand Name */}
-              <div className="form-section">
-                <div className="form-header">
-                  <div className="form-icon">
-                    <FaStar />
-                  </div>
-                  <h3>Brand Identity</h3>
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="brand-name">
-                    Brand Name *
-                    <span className="label-desc">This will be displayed to customers</span>
-                  </label>
+        <div className="cb-simple-container">
+          <form onSubmit={handleCreateBrand} className="cb-form">
+            <div className="cb-card">
+              <div className="cb-card-header">
+                <div className="cb-card-icon"><FaStar /></div>
+                <h3>Brand Details</h3>
+              </div>
+              <div className="cb-card-body">
+                {/* Name */}
+                <div className="cb-form-group">
+                  <label>Brand Name</label>
                   <input
-                    id="brand-name"
                     type="text"
                     value={newBrand.name}
-                    onChange={(e) => setNewBrand({...newBrand, name: e.target.value})}
-                    placeholder="Enter your brand name"
-                    className={errors.name ? 'error' : ''}
+                    onChange={(e) => setNewBrand({ ...newBrand, name: e.target.value })}
+                    placeholder="e.g. Nike, Apple, Zara"
+                    className={errors.name ? 'cb-input error' : 'cb-input'}
                   />
-                  {errors.name && <span className="error-message">{errors.name}</span>}
+                  {errors.name && <span className="cb-error">{errors.name}</span>}
                 </div>
-              </div>
 
-              {/* Logo Section */}
-              <div className="form-section">
-                <div className="form-header">
-                  <div className="form-icon">
-                    <FaGlobe />
-                  </div>
-                  <h3>Brand Logo</h3>
+                {/* Description */}
+                <div className="cb-form-group">
+                  <label>Description</label>
+                  <textarea
+                    value={newBrand.description}
+                    onChange={(e) => setNewBrand({ ...newBrand, description: e.target.value })}
+                    placeholder="Tell your brand's story..."
+                    rows="4"
+                    className={errors.description ? 'cb-input error' : 'cb-input'}
+                  />
+                  <div className="cb-char-count">{newBrand.description.length} chars</div>
+                  {errors.description && <span className="cb-error">{errors.description}</span>}
                 </div>
-                
-                <div className="logo-section">
-                  <div className="logo-preview">
-                    {logoPreview ? (
-                      <img src={logoPreview} alt="Logo preview" onError={() => setLogoPreview('')} />
-                    ) : (
-                      <div className="logo-placeholder">
-                        <FaUpload />
-                        <span>Logo Preview</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="form-group">
-                    <label htmlFor="logo-url">
-                      Logo URL *
-                      <span className="label-desc">Enter a direct image URL for your logo</span>
-                    </label>
+
+                {/* Logo with Preview Inline */}
+                <div className="cb-logo-section-simple">
+                  <div className="cb-form-group" style={{ flex: 1 }}>
+                    <label>Logo URL</label>
                     <input
-                      id="logo-url"
                       type="url"
                       value={newBrand.logo}
                       onChange={handleLogoChange}
-                      placeholder="https://example.com/logo.png"
-                      className={errors.logo ? 'error' : ''}
+                      placeholder="https://..."
+                      className={errors.logo ? 'cb-input error' : 'cb-input'}
                     />
-                    {errors.logo && <span className="error-message">{errors.logo}</span>}
+                    {errors.logo && <span className="cb-error">{errors.logo}</span>}
+                  </div>
+
+                  <div className={`cb-logo-preview-box-small ${logoPreview ? 'has-image' : ''}`}>
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Preview" onError={() => setLogoPreview('')} />
+                    ) : (
+                      <FaUpload />
+                    )}
                   </div>
                 </div>
-              </div>
 
-              {/* Description */}
-              <div className="form-section">
-                <div className="form-group">
-                  <label htmlFor="brand-description">
-                    Brand Description *
-                    <span className="label-desc">Tell customers about your brand story and values</span>
-                  </label>
-                  <textarea
-                    id="brand-description"
-                    value={newBrand.description}
-                    onChange={(e) => setNewBrand({...newBrand, description: e.target.value})}
-                    placeholder="Describe what makes your brand unique..."
-                    rows="5"
-                    className={errors.description ? 'error' : ''}
-                  />
-                  <div className="char-count">
-                    {newBrand.description.length}/500 characters
-                  </div>
-                  {errors.description && <span className="error-message">{errors.description}</span>}
-                </div>
-              </div>
-
-              {/* Featured Option */}
-              <div className="form-section">
-                <div className="featured-option">
-                  <label className="checkbox-label">
+                {/* Checkbox */}
+                <div className="cb-checkbox-wrapper">
+                  <label className="cb-checkbox-label">
                     <input
                       type="checkbox"
                       checked={newBrand.isFeatured}
-                      onChange={(e) => setNewBrand({...newBrand, isFeatured: e.target.checked})}
-                      className="checkbox-input"
+                      onChange={(e) => setNewBrand({ ...newBrand, isFeatured: e.target.checked })}
                     />
-                    <span className="checkbox-custom"></span>
-                    <div className="checkbox-content">
-                      <span className="checkbox-title">Feature this brand</span>
-                      <span className="checkbox-desc">Highlight your brand on the homepage for increased visibility</span>
+                    <span className="cb-checkmark"></span>
+                    <div>
+                      <span className="cb-checkbox-title">Feature Brand</span>
+                      <span className="cb-checkbox-desc">Boost visibility on homepage</span>
                     </div>
                   </label>
                 </div>
               </div>
-
-              {/* Submit Error */}
-              {errors.submit && (
-                <div className="form-error">
-                  <span className="error-message">{errors.submit}</span>
-                </div>
-              )}
-
-              {/* Form Actions */}
-              <div className="form-actions">
-                <button 
-                  type="button" 
-                  onClick={onBackToDashboard} 
-                  className="btn-secondary"
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="btn-primary" 
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <div className="loading-spinner"></div>
-                      Creating Brand...
-                    </>
-                  ) : (
-                    'Create Brand'
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* Sidebar Tips */}
-          <div className="brand-tips">
-            <div className="tips-header">
-              <h3>Brand Creation Tips</h3>
             </div>
-            <div className="tips-content">
-              <div className="tip-item">
-                <div className="tip-icon">💡</div>
-                <div className="tip-text">
-                  <h4>Choose a Memorable Name</h4>
-                  <p>Your brand name should be unique, easy to remember, and relevant to your products.</p>
-                </div>
-              </div>
-              
-              <div className="tip-item">
-                <div className="tip-icon">🎨</div>
-                <div className="tip-text">
-                  <h4>High-Quality Logo</h4>
-                  <p>Use a high-resolution logo that looks good at all sizes and represents your brand well.</p>
-                </div>
-              </div>
-              
-              <div className="tip-item">
-                <div className="tip-icon">📝</div>
-                <div className="tip-text">
-                  <h4>Compelling Description</h4>
-                  <p>Write a clear description that explains your brand's story, values, and what makes it special.</p>
-                </div>
-              </div>
+
+            {errors.submit && <div className="cb-submit-error">{errors.submit}</div>}
+
+            <div className="cb-actions">
+              <button type="button" onClick={onBackToDashboard} className="cb-btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" className="cb-btn-primary" disabled={loading}>
+                {loading ? 'Creating...' : 'Create Brand'}
+              </button>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>
