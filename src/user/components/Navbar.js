@@ -287,9 +287,9 @@ const Navbar = ({ user: propUser, onLogout }) => {
             {/* 🔽 HIDE 'Become a Seller' if seller is logged in */}
             {!seller && (
               <li className="nav-item">
-                <a className="nav-link" href="#seller">
+                <Link className="nav-link" to="/seller">
                   <i className="bi bi-shop me-2"></i>Become a Seller
-                </a>
+                </Link>
               </li>
             )}
 
