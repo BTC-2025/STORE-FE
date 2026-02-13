@@ -110,6 +110,7 @@ const ProductDetail = () => {
   };
 
   if (loading) return <div className="text-center py-5">Loading...</div>;
+  if (error) return <div className="text-center py-5 text-danger">{error}</div>;
   if (!product) return <div className="text-center py-5">Product Not Found</div>;
 
   const images = product.images?.length > 0 ? product.images : [product.image];
